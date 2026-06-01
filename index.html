@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>学英语 - 英语进阶之旅</title>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// ============ Supabase 配置 ============
+const SUPABASE_URL = 'https://ohqllarwxwhavchdvyqy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_7grRu4QOtBTnBLwt5rJixw_BluOyCgn';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script><style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: #F5F7FA; color: #333; font-size: 14px; line-height: 1.6;
+  padding-bottom: 70px;
+}
+/* Fix: ensure all buttons have readable text */
+button { cursor: pointer; font-family: inherit; }
+.btn-primary, .btn-primary:hover, .btn-primary:active { color: #FFF !important; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+.btn-secondary { color: #4A90D9; }
+.audio-btn { color: #4A90D9; }
+/* Fix: detail page category display */
+#detail-cat { display: inline-block; }
+/* Fix: wordbook remove button visibility */
+.wordbook-item .btn-secondary { padding: 4px 12px; font-size: 12px; }
+/* Fix: speaking metric display for readability */
+.result-score { text-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+}
+.container { padding: 16px; min-height: 100vh; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* TabBar */
+.tab-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 60px;
+  background: #FFF; display: flex; border-top: 1px solid #E5E5EA;
+  z-index: 1000; padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; font-size: 10px; color: #8E8E93;
+  cursor: pointer; transition: color 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.tab-item.active { color: #4A90D9; }
+.tab-icon { font-size: 22px; margin-bottom: 2px; }
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, #4A90D9, #6BB8E8); color: #FFF;
+  border-radius: 22px; padding: 12px 28px; text-align: center; font-size: 16px;
+  font-weight: 600; border: none; cursor: pointer; display: inline-block;
+  box-shadow: 0 4px 16px rgba(74,144,217,0.3); -webkit-tap-highlight-color: transparent;
+}
+.btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+.btn-secondary {
+  background: #FFF; color: #4A90D9; border: 2px solid #4A90D9;
+  border-radius: 22px; padding: 10px 24px; text-align: center; font-size: 15px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.btn-sm { padding: 8px 16px !important; font-size: 13px !important; }
+.btn-block { display: block; width: 100%; }
+
+/* Card */
+.card {
+  background: #FFF; border-radius: 16px; padding: 20px;
+  margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.card-title { font-size: 17px; font-weight: 700; color: #1A1A2E; margin-bottom: 8px; }
+.card-desc { font-size: 13px; color: #8E8E93; line-height: 1.6; }
+.section-title { font-size: 16px; font-weight: 700; color: #1A1A2E; margin: 24px 0 16px; }
+
+/* Tags */
+.tag { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 11px; margin-right: 6px; margin-bottom: 4px; }
+.tag-blue { background: #EBF5FF; color: #4A90D9; }
+.tag-green { background: #E8F8EF; color: #34C759; }
+.tag-orange { background: #FFF3E0; color: #FF9500; }
+.tag-purple { background: #F3E8FF; color: #AF52DE; }
+.tag-red { background: #FFEBEE; color: #FF3B30; }
+
+
+/* Login Modal */
+.login-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+}
+.login-card {
+  background: #FFF; border-radius: 20px; padding: 32px 24px;
+  width: 90%; max-width: 360px; text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.login-card h2 { font-size: 22px; color: #1A1A2E; margin-bottom: 6px; }
+.login-card p { font-size: 13px; color: #8E8E93; margin-bottom: 20px; }
+.login-card input {
+  width: 100%; padding: 14px 16px; border: 2px solid #E5E5EA;
+  border-radius: 14px; font-size: 16px; text-align: center;
+  outline: none; transition: border-color 0.2s;
+}
+.login-card input:focus { border-color: #4A90D9; }
+.login-card .btn-primary {
+  width: 100%; margin-top: 16px; padding: 14px; font-size: 16px;
+}
+.login-card .login-hint {
+  font-size: 11px; color: #C7C7CC; margin-top: 12px;
+}
+.login-card .login-error {
+  font-size: 12px; color: #FF3B30; margin-top: 8px; display: none;
+}
+/* Quick user switcher in profile */
+.user-switcher {
+  display: flex; align-items: center; gap: 8px; margin-top: 12px;
+  flex-wrap: wrap;
+}
+.user-switcher .tag { cursor: pointer; padding: 6px 14px; font-size: 12px; }
+.user-switcher .tag.active-tag { background: #4A90D9; color: #FFF; }
+.user-switcher .logout-link {
+  font-size: 12px; color: #FF3B30; cursor: pointer; margin-left: auto;
+  text-decoration: underline;
+}
+/* Progress */
+.progress-bg { height: 10px; background: #E8ECF1; border-radius: 5px; overflow: hidden; }
+.progress-fill {
+  height: 100%; border-radius: 5px; transition: width 0.5s ease;
+  background: linear-gradient(90deg, #4A90D9, #6BB8E8);
+}
+
+/* Flex */
+.flex-row { display: flex; align-items: center; }
+.flex-col { display: flex; flex-direction: column; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.flex-wrap { display: flex; flex-wrap: wrap; }
+.flex-1 { flex: 1; }
+
+/* Spacing */
+.mt-10 { margin-top: 10px; } .mt-20 { margin-top: 20px; } .mt-30 { margin-top: 30px; }
+.mb-10 { margin-bottom: 10px; } .mb-20 { margin-bottom: 20px; }
+
+/* Header */
+.header { padding: 20px 0 10px; }
+.greeting { font-size: 22px; font-weight: 800; color: #1A1A2E; }
+.header-sub { font-size: 14px; color: #8E8E93; margin-top: 4px; }
+
+/* Stats */
+.stats-grid { display: flex; justify-content: space-around; }
+.stat-block { text-align: center; }
+.stat-value { font-size: 24px; font-weight: 800; color: #4A90D9; }
+.stat-name { font-size: 11px; color: #8E8E93; margin-top: 2px; }
+
+/* Daily card */
+.daily-card {
+  background: linear-gradient(135deg, rgba(74,144,217,0.08), rgba(107,184,232,0.12));
+  border: 2px solid rgba(74,144,217,0.15);
+}
+.daily-streak { font-size: 13px; color: #FF9500; font-weight: 600; }
+.daily-stats { justify-content: space-around; flex-wrap: wrap; gap: 10px; }
+.stat-item { text-align: center; min-width: 60px; }
+.stat-num { font-size: 22px; font-weight: 700; color: #4A90D9; }
+.stat-label { font-size: 11px; color: #8E8E93; margin-top: 2px; }
+
+/* Stage cards */
+.stage-card {
+  background: #FFF; border-radius: 16px; padding: 20px;
+  margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border-left: 4px solid #34C759;
+}
+.stage-icon { font-size: 32px; margin-right: 16px; width: 50px; height: 50px;
+  display: flex; align-items: center; justify-content: center;
+  background: #F5F7FA; border-radius: 12px; flex-shrink: 0;
+}
+.stage-name { font-size: 16px; font-weight: 700; color: #1A1A2E; }
+.stage-desc { font-size: 12px; color: #8E8E93; margin-top: 2px; }
+.stage-progress-text { font-size: 12px; color: #8E8E93; text-align: right; margin-top: 4px; }
+
+/* Quick actions */
+.quick-actions { gap: 12px; }
+.quick-item {
+  width: calc(25% - 9px); background: #FFF; border-radius: 14px;
+  padding: 16px 8px; text-align: center; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s;
+}
+.quick-item:active { transform: scale(0.95); }
+.quick-icon { font-size: 28px; margin-bottom: 6px; }
+.quick-label { font-size: 12px; color: #333; font-weight: 500; }
+
+/* Search */
+.search-bar { margin-bottom: 16px; }
+.search-input {
+  width: 100%; padding: 12px 16px; background: #FFF; border: none;
+  border-radius: 24px; font-size: 14px; outline: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* Review card */
+.review-card { background: linear-gradient(135deg, #FFFBEB, #FFF7ED); border: 1px solid #FDE68A; }
+
+/* Word list cards */
+.word-list-card {
+  background: #FFF; border-radius: 16px; padding: 20px; margin-bottom: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06); cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: transform 0.15s;
+}
+.word-list-card:active { transform: scale(0.98); }
+.list-icon { font-size: 32px; margin-right: 14px; width: 50px; height: 50px;
+  display: flex; align-items: center; justify-content: center;
+  background: #F5F7FA; border-radius: 12px; flex-shrink: 0;
+}
+.list-name { font-size: 16px; font-weight: 700; color: #1A1A2E; }
+.list-desc { font-size: 12px; color: #8E8E93; margin-top: 2px; }
+
+/* Exam tabs */
+.exam-tabs { margin-bottom: 16px; background: #FFF; border-radius: 12px; padding: 4px; }
+.exam-tab {
+  flex: 1; text-align: center; padding: 10px 12px; border-radius: 10px;
+  cursor: pointer; font-size: 14px; font-weight: 600; color: #8E8E93;
+  transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.exam-tab.active { background: #4A90D9; color: #FFF; }
+
+/* Section cards */
+.section-card { padding: 16px 20px !important; }
+.section-icon { font-size: 24px; margin-right: 14px; min-width: 40px; }
+.section-name { font-size: 15px; font-weight: 700; color: #1A1A2E; }
+.section-desc { font-size: 12px; color: #8E8E93; }
+.section-duration { font-size: 14px; color: #FF9500; font-weight: 600; }
+
+/* Mock test */
+.test-title { font-size: 15px; font-weight: 700; color: #1A1A2E; }
+
+/* Speaking */
+.sentence-card {
+  background: linear-gradient(135deg, #667EEA, #764BA2); color: #FFF;
+  border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 16px;
+}
+.sentence-en { font-size: 20px; font-weight: 600; line-height: 1.8; margin-bottom: 8px; }
+.sentence-cn { font-size: 14px; opacity: 0.85; }
+.record-btn {
+  width: 80px; height: 80px; border-radius: 50%; background: #FF3B30;
+  display: flex; align-items: center; justify-content: center;
+  margin: 20px auto; cursor: pointer; box-shadow: 0 4px 20px rgba(255,59,48,0.4);
+  transition: transform 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.record-btn.recording { background: #FF6B35; animation: pulse 1.5s infinite; }
+.record-btn:active { transform: scale(0.9); }
+.record-icon { font-size: 36px; }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,59,48,0.4); }
+  50% { box-shadow: 0 0 0 20px rgba(255,59,48,0); }
+}
+
+.result-card { text-align: center; }
+.result-score { font-size: 48px; font-weight: 800; color: #4A90D9; margin: 8px 0; }
+.result-metrics { display: flex; justify-content: space-around; margin: 16px 0; }
+.metric-item { text-align: center; }
+.metric-val { font-size: 20px; font-weight: 700; color: #4A90D9; }
+.metric-label { font-size: 11px; color: #8E8E93; }
+.tip-item {
+  background: #FFFBEB; border-radius: 8px; padding: 10px 14px;
+  margin-bottom: 8px; font-size: 13px; color: #92400E;
+}
+
+/* Scenes */
+.scene-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.scene-item {
+  background: #FFF; border-radius: 14px; padding: 16px; text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.scene-item:active { transform: scale(0.97); }
+.scene-icon { font-size: 28px; margin-bottom: 6px; }
+.scene-name { font-size: 14px; font-weight: 600; color: #1A1A2E; margin-bottom: 2px; }
+.scene-count { font-size: 11px; color: #8E8E93; }
+
+/* Profile */
+.profile-header { display: flex; align-items: center; }
+.avatar {
+  width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #4A90D9, #6BB8E8);
+  display: flex; align-items: center; justify-content: center; font-size: 28px;
+  color: #FFF; margin-right: 16px; flex-shrink: 0;
+}
+.user-name { font-size: 18px; font-weight: 700; color: #1A1A2E; }
+.user-level { font-size: 13px; color: #4A90D9; margin-top: 2px; }
+.badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.badge-item {
+  text-align: center; padding: 16px; background: #F5F7FA; border-radius: 14px;
+}
+.badge-item.earned { background: #EBF5FF; }
+.badge-icon { font-size: 28px; margin-bottom: 6px; }
+.badge-icon.locked { opacity: 0.3; }
+.badge-name { font-size: 11px; color: #333; font-weight: 500; }
+.badge-item.locked .badge-name { color: #C7C7CC; }
+
+/* Growth map */
+.map-node {
+  display: flex; align-items: stretch; margin-bottom: 16px;
+}
+.map-connector {
+  width: 4px; background: #E8ECF1; border-radius: 2px; margin: 0 20px;
+}
+.map-checkpoint {
+  background: #FFF; border-radius: 16px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  flex: 1; position: relative;
+}
+.checkpoint-dot {
+  width: 16px; height: 16px; border-radius: 50%; position: absolute;
+  left: -28px; top: 20px; border: 3px solid #FFF; box-shadow: 0 0 0 2px #4A90D9;
+}
+.checkpoint-dot.done { background: #34C759; }
+.checkpoint-dot.active { background: #4A90D9; }
+.checkpoint-dot.pending { background: #E8ECF1; }
+.checkpoint-name { font-size: 15px; font-weight: 700; color: #1A1A2E; }
+.checkpoint-desc { font-size: 12px; color: #8E8E93; margin-top: 4px; }
+
+/* Daily Plan */
+.plan-task {
+  background: #FFF; border-radius: 14px; padding: 16px; margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center;
+}
+.task-check {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid #D1D5DB;
+  margin-right: 14px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.task-check.done { background: #34C759; border-color: #34C759; }
+.task-check.done::after { content: '鈼?; color: #FFF; font-size: 14px; }
+.task-content { flex: 1; }
+.task-name { font-size: 15px; font-weight: 600; color: #1A1A2E; }
+.task-meta { font-size: 12px; color: #8E8E93; margin-top: 2px; }
+
+/* Phonetics List */
+.phonetic-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.phonetic-item {
+  background: #FFF; border-radius: 14px; padding: 14px 8px; text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.phonetic-item:active { transform: scale(0.95); }
+.phonetic-item.learned { border: 2px solid #34C759; }
+.phonetic-symbol { font-size: 22px; font-weight: 700; color: #4A90D9; }
+.phonetic-example { font-size: 10px; color: #8E8E93; margin-top: 4px; }
+
+/* Cat tabs */
+.cat-tabs { margin-bottom: 16px; background: #FFF; border-radius: 12px; padding: 4px; display: flex; }
+.cat-tab {
+  flex: 1; text-align: center; padding: 8px 12px; border-radius: 10px;
+  cursor: pointer; font-size: 13px; font-weight: 600; color: #8E8E93;
+  transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.cat-tab.active { background: #4A90D9; color: #FFF; }
+
+/* Detail page */
+.detail-hero {
+  background: linear-gradient(135deg, #4A90D9, #6BB8E8); color: #FFF;
+  border-radius: 20px; padding: 30px; text-align: center; margin-bottom: 20px;
+}
+.detail-symbol { font-size: 48px; font-weight: 800; margin-bottom: 8px; }
+.detail-name { font-size: 18px; opacity: 0.9; }
+.detail-tip { font-size: 13px; margin-top: 10px; opacity: 0.8; }
+
+/* Practice quiz */
+.quiz-layout { display: flex; flex-direction: column; }
+.quiz-bottom-nav {
+  display: flex; flex-wrap: nowrap; gap: 10px; justify-content: center;
+  padding: 14px; background: #FFF; border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-top: 16px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+.quiz-bottom-nav::-webkit-scrollbar { height: 4px; }
+.quiz-bottom-nav::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 2px; }
+.quiz-nav-dot {
+  width: 38px; height: 38px; border-radius: 50%; background: #E8ECF1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: #8E8E93; cursor: pointer;
+  transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+  border: 2px solid transparent;
+}
+.quiz-nav-dot.current { background: #4A90D9; color: #FFF; border-color: #4A90D9; transform: scale(1.12); box-shadow: 0 2px 8px rgba(74,144,217,0.35); }
+.quiz-nav-dot.correct { background: #D4EDDA; color: #155724; border-color: #34C759; }
+.quiz-nav-dot.wrong { background: #F8D7DA; color: #721C24; border-color: #FF3B30; }
+.quiz-nav-dot:active { transform: scale(0.92); }
+.quiz-main { flex: 1; }
+.quiz-prev-next { display: flex; gap: 10px; margin-top: 16px; }
+.quiz-prev-next .btn-secondary, .quiz-prev-next .btn-primary { flex: 1; text-align: center; }
+.quiz-question { font-size: 16px; font-weight: 600; line-height: 1.6; margin-bottom: 15px; }
+.quiz-option {
+  background: #FFF; border: 2px solid #E8ECF1; border-radius: 14px; padding: 14px 16px;
+  margin-bottom: 10px; cursor: pointer; font-size: 15px; transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.quiz-option:active { background: #F5F7FA; }
+.quiz-option.selected { border-color: #4A90D9; background: #EBF5FF; }
+.quiz-option.correct { border-color: #34C759; background: #E8F8EF; }
+.quiz-option.wrong { border-color: #FF3B30; background: #FFEBEE; }
+
+/* Finish screen */
+.finish-screen { text-align: center; padding: 40px 20px; }
+.finish-emoji { font-size: 60px; margin-bottom: 16px; }
+.finish-score { font-size: 36px; font-weight: 800; color: #4A90D9; }
+
+/* Word study */
+.word-card {
+  background: #FFF; border-radius: 20px; padding: 30px; text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08); min-height: 250px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.word-text { font-size: 32px; font-weight: 800; color: #1A1A2E; margin-bottom: 8px; }
+.word-phonetic { font-size: 18px; color: #8E8E93; margin-bottom: 16px; }
+.word-meaning { font-size: 18px; color: #4A90D9; margin-bottom: 12px; font-weight: 600; }
+.word-example { font-size: 13px; color: #8E8E93; line-height: 1.6; }
+.word-example-cn { font-size: 12px; color: #B0B0B0; margin-top: 4px; }
+
+/* Mock test */
+.test-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid #E8ECF1; margin-bottom: 16px;
+}
+.question-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.q-dot {
+  width: 32px; height: 32px; border-radius: 50%; background: #E8ECF1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.q-dot.answered { background: #4A90D9; color: #FFF; }
+.q-dot.current { border: 2px solid #4A90D9; }
+.question-stem { font-size: 16px; font-weight: 600; margin-bottom: 16px; line-height: 1.6; }
+
+/* Test result */
+.result-circle {
+  width: 120px; height: 120px; border-radius: 50%;
+  background: linear-gradient(135deg, #4A90D9, #6BB8E8);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  margin: 0 auto;
+}
+.result-big { font-size: 40px; font-weight: 800; color: #FFF; }
+.result-small { font-size: 12px; color: rgba(255,255,255,0.8); }
+
+/* Wordbook */
+.wordbook-item {
+  background: #FFF; border-radius: 14px; padding: 16px; margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.wordbook-word { font-size: 18px; font-weight: 700; color: #1A1A2E; }
+.wordbook-phonetic { font-size: 14px; color: #8E8E93; }
+.wordbook-meaning { font-size: 14px; color: #4A90D9; margin-top: 4px; }
+
+/* Back button */
+.back-btn {
+  display: inline-flex; align-items: center; cursor: pointer; font-size: 15px;
+  color: #4A90D9; margin-bottom: 12px; font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
+}
+.back-btn::before { content: '鈹?; margin-right: 4px; font-size: 18px; }
+
+/* Audio btn */
+.audio-btn {
+  background: #EBF5FF; border: none; border-radius: 50%; width: 44px; height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 20px; -webkit-tap-highlight-color: transparent;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 2000; display: none;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal-content {
+  background: #FFF; border-radius: 20px; padding: 24px; width: 90%; max-width: 380px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<!-- TabBar -->
+<div class="tab-bar">
+  <div class="tab-item active" data-tab="index">
+    <div class="tab-icon">??</div><span>学习中心</span>
+  </div>
+  <div class="tab-item" data-tab="vocabulary">
+    <div class="tab-icon">??</div><span>词库背词</span>
+  </div>
+  <div class="tab-item" data-tab="exam">
+    <div class="tab-icon">??</div><span>真题模拟</span>
+  </div>
+  <div class="tab-item" data-tab="speaking">
+    <div class="tab-icon">??</div><span>口语纠音</span>
+  </div>
+  <div class="tab-item" data-tab="profile">
+    <div class="tab-icon">??</div><span>我的</span>
+  </div>
+</div>
+
+<!-- ========== PAGE: INDEX ========== -->
+<div id="page-index" class="page active">
+<div class="container">
+  <div class="header">
+    <div class="greeting">早上好！??</div>
+    <div class="header-sub">继续你的英语进阶之旅</div>
+  </div>
+
+  <!-- 今日学习进度 -->
+  <div class="card daily-card">
+    <div class="flex-between">
+      <div class="card-title">?? 今日学习进度</div>
+      <div class="daily-streak">?? 连续<span id="streak-days">3</span>天</div>
+    </div>
+    <div class="daily-stats flex-row mt-20" id="today-stats">
+      <div class="stat-item"><div class="stat-num">12</div><div class="stat-label">新词</div></div>
+      <div class="stat-item"><div class="stat-num">28</div><div class="stat-label">复习</div></div>
+      <div class="stat-item"><div class="stat-num">35min</div><div class="stat-label">学习时长</div></div>
+      <div class="stat-item"><div class="stat-num">52</div><div class="stat-label">今日得分</div></div>
+    </div>
+    <div class="mt-20"><span class="btn-primary btn-block" onclick="navToPage('daily-plan')">开始今日学习计划</span></div>
+  </div>
+
+  <!-- 四大阶段 -->
+  <div class="section-title mt-30">??? 学习进阶路径</div>
+  <div id="stages-container"></div>
+
+  <!-- 快捷入口 -->
+  <div class="section-title mt-30">? 快捷入口</div>
+  <div class="flex-row quick-actions">
+    <div class="quick-item" onclick="navToPage('wordbook')"><div class="quick-icon">??</div><div class="quick-label">生词本</div></div>
+    <div class="quick-item" onclick="navToPage('growth-map')"><div class="quick-icon">??</div><div class="quick-label">成长图谱</div></div>
+    <div class="quick-item" onclick="navToPage('daily-plan')"><div class="quick-icon">??</div><div class="quick-label">学习计划</div></div>
+    <div class="quick-item" onclick="navToPage('phonetics')"><div class="quick-icon">??</div><div class="quick-label">音标特训</div></div>
+  </div>
+</div>
+</div>
+<!-- ========== PAGE: VOCABULARY ========== -->
+<div id="page-vocabulary" class="page">
+<div class="container">
+  <div class="search-bar"><input class="search-input" placeholder="?? 搜索单词..." id="vocab-search"></div>
+  <div id="review-card" class="card review-card" style="display:none">
+    <div class="flex-between">
+      <div><div class="card-title">?? 待复习单词</div><div class="card-desc" id="review-desc">根据遗忘曲线，需要复习单词</div></div>
+      <span class="btn-primary btn-sm" onclick="startReview()">立即复习</span>
+    </div>
+  </div>
+  <div class="section-title mt-20">?? 选择词库</div>
+  <div id="word-lists-container"></div>
+  <div class="section-title mt-30">?? 背词统计</div>
+  <div class="card">
+    <div class="flex-between">
+      <div class="stat-block"><div class="stat-value" id="stat-learned">0</div><div class="stat-name">已学单词</div></div>
+      <div class="stat-block"><div class="stat-value" id="stat-mastered">0</div><div class="stat-name">熟练掌握</div></div>
+      <div class="stat-block"><div class="stat-value" id="stat-reviewing">0</div><div class="stat-name">复习中</div></div>
+      <div class="stat-block"><div class="stat-value">3天</div><div class="stat-name">连续打卡</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ========== PAGE: EXAM ========== -->
+<div id="page-exam" class="page">
+<div class="container">
+  <div class="exam-tabs flex-row">
+    <div class="exam-tab active" data-exam="cet4" onclick="switchExam('cet4')">四级</div>
+    <div class="exam-tab" data-exam="cet6" onclick="switchExam('cet6')">六级</div>
+    <div class="exam-tab" data-exam="ielts" onclick="switchExam('ielts')">雅思</div>
+  </div>
+  <div id="exam-info-card"></div>
+  <div class="section-title">?? 题型结构</div>
+  <div id="exam-sections"></div>
+  <div class="section-title mt-20">?? 模拟试卷</div>
+  <div id="mock-tests"></div>
+</div>
+</div>
+
+<!-- ========== PAGE: SPEAKING ========== -->
+<div id="page-speaking" class="page">
+<div class="container">
+  <div class="stats-grid mb-20">
+    <div class="stat-block"><div class="stat-value" id="voice-total">0</div><div class="stat-name">录音次数</div></div>
+    <div class="stat-block"><div class="stat-value" id="voice-avg">0</div><div class="stat-name">平均分</div></div>
+    <div class="stat-block"><div class="stat-value" id="voice-best">0</div><div class="stat-name">最高分</div></div>
+  </div>
+
+  <div class="sentence-card" id="sentence-card">
+    <div class="sentence-en" id="sentence-en">The quick brown fox jumps over the lazy dog.</div>
+    <div class="sentence-cn" id="sentence-cn">那只敏捷的棕色狐狸跳过了那只懒狗。</div>
+    <div class="sentence-cn" id="sentence-phonetic" style="font-size:12px;margin-top:4px;"></div>
+    <button class="audio-btn" onclick="playSentenceAudio()" style="margin-top:12px;">??</button>
+  </div>
+
+  <div class="record-btn" id="record-btn" onclick="toggleRecord()"><div class="record-icon">??</div></div>
+
+  <div id="speaking-result" style="display:none" class="card result-card mt-20">
+    <div class="card-title">?? 评测结果</div>
+    <div class="result-score" id="speak-score">85</div>
+    <div class="result-metrics">
+      <div class="metric-item"><div class="metric-val" id="metric-acc">82</div><div class="metric-label">准确度</div></div>
+      <div class="metric-item"><div class="metric-val" id="metric-flu">75</div><div class="metric-label">流利度</div></div>
+      <div class="metric-item"><div class="metric-val" id="metric-comp">92</div><div class="metric-label">完整度</div></div>
+    </div>
+    <div id="speaking-tips"></div>
+    <div class="mt-20"><span class="btn-secondary" onclick="nextSentence()">下一句 →</span></div>
+  </div>
+
+  <div class="section-title mt-30">?? 场景练习</div>
+  <div class="scene-grid" id="scene-grid"></div>
+</div>
+</div>
+<!-- ========== PAGE: PROFILE ========== -->
+<div id="page-profile" class="page">
+<div class="container">
+  <div class="card profile-header">
+    <div class="avatar">??</div>
+    <div class="flex-1">
+      <div class="user-name" id="profile-name" style="cursor:pointer" onclick="showLogin()">点击登录</div>
+      <div class="user-level">Lv.3 初级进阶者</div>
+    </div>
+    <span class="tag tag-blue" onclick="showLogin()">切换账号</span>
+  </div>
+
+  <div class="card stats-grid mt-20">
+    <div class="stat-block" onclick="navToPage('wordbook')" style="cursor:pointer">
+      <div class="stat-value" id="prof-wordbook">0</div><div class="stat-name">生词本</div>
+    </div>
+    <div class="stat-block" onclick="navToPage('phonetics')" style="cursor:pointer">
+      <div class="stat-value" id="prof-phonetics">0</div><div class="stat-name">音标掌握</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-value" id="prof-tests">0</div><div class="stat-name">模考次数</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-value" id="prof-streak">0天</div><div class="stat-name">连续学习</div>
+    </div>
+  </div>
+
+  <div class="section-title">?? 成就勋章</div>
+  <div class="badge-grid" id="badge-grid"></div>
+
+  <div class="section-title mt-30">? 快捷功能</div>
+  <div class="word-list-card" onclick="navToPage('wordbook')" style="padding:14px 20px">
+    <div class="flex-between"><span>?? 我的生词本</span><span style="color:#8E8E93">→</span></div>
+  </div>
+  <div class="word-list-card" onclick="navToPage('growth-map')" style="padding:14px 20px">
+    <div class="flex-between"><span>?? 成长图谱</span><span style="color:#8E8E93">→</span></div>
+  </div>
+  <div class="word-list-card" onclick="navToPage('phonetics')" style="padding:14px 20px">
+    <div class="flex-between"><span>?? 音标特训</span><span style="color:#8E8E93">→</span></div>
+  </div>
+  <div class="word-list-card" onclick="navToPage('daily-plan')" style="padding:14px 20px">
+    <div class="flex-between"><span>?? 每日学习计划</span><span style="color:#8E8E93">→</span></div>
+  </div>
+  <div class="word-list-card" onclick="resetAllData()" style="padding:14px 20px">
+    <div class="flex-between"><span>??? 重置所有数据</span><span style="color:#FF3B30">→</span></div>
+  </div>
+</div>
+</div>
+<!-- ========== PAGE: PHONETICS ========== -->
+<div id="page-phonetics" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('index')">返回</div>
+  <div class="header"><div class="greeting">?? 音标特训</div><div class="header-sub">48个国际音标精学 + AI纠音</div></div>
+  <div class="flex-between mb-20">
+    <div class="flex-1"><div class="progress-bg"><div class="progress-fill" id="phonetics-progress" style="width:0%"></div></div></div>
+    <span style="margin-left:12px;font-size:14px;font-weight:600" id="phonetics-progress-text">0/48</span>
+  </div>
+  <div class="cat-tabs">
+    <div class="cat-tab active" data-cat="all" onclick="switchPhoneticCat('all')">全部</div>
+    <div class="cat-tab" data-cat="vowels" onclick="switchPhoneticCat('vowels')">元音(20)</div>
+    <div class="cat-tab" data-cat="consonants" onclick="switchPhoneticCat('consonants')">辅音(28)</div>
+  </div>
+  <div id="phonetic-grid" class="phonetic-grid"></div>
+  <div class="mt-20"><span class="btn-primary btn-block" onclick="navToPage('phonetics-practice')">?? 开始音标练习</span></div>
+</div>
+</div>
+
+<!-- ========== PAGE: PHONETICS DETAIL ========== -->
+<div id="page-phonetics-detail" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToPage('phonetics')">返回音标列表</div>
+  <div class="detail-hero">
+    <div class="detail-symbol" id="detail-symbol">/i?/</div>
+    <div class="detail-name" id="detail-name">长元音 /i?/</div>
+    <div style="margin-top:12px" id="detail-example">例：see /si?/</div>
+    <div style="margin-top:16px;display:flex;gap:10px;justify-content:center">
+      <button class="audio-btn" onclick="speakPhonemeDetail()" style="background:rgba(0,0,0,0.25);color:#FFF;width:auto;padding:0 20px;border-radius:22px;font-size:15px;font-weight:600;border:1px solid rgba(255,255,255,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.3);">?? 标准发音</button>
+      <button class="audio-btn" onclick="speakPhonemeSlow()" style="background:rgba(0,0,0,0.25);color:#FFF;width:auto;padding:0 20px;border-radius:22px;font-size:15px;font-weight:600;border:1px solid rgba(255,255,255,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.3);">?? 慢速发音</button>
+      <button class="audio-btn" onclick="stopSpeaking()" style="background:rgba(0,0,0,0.25);color:#FFF;width:auto;padding:0 20px;border-radius:22px;font-size:15px;font-weight:600;border:1px solid rgba(255,255,255,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.3);">? 停止</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">?? 口型要点</div>
+    <div class="card-desc" id="detail-mouth"></div>
+  </div>
+  <div class="card mt-20">
+    <div class="card-title">?? 发音技巧</div>
+    <div class="card-desc" id="detail-tip"></div>
+  </div>
+  <div class="card mt-20">
+    <div class="card-title">?? 分类</div>
+    <span class="tag tag-blue" id="detail-cat"></span>
+  </div>
+</div>
+</div>
+
+<!-- ========== PAGE: PHONETICS PRACTICE ========== -->
+<div id="page-phonetics-practice" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToPage('phonetics')">返回音标列表</div>
+  <div class="header"><div class="greeting">?? 音标练习</div><div class="header-sub">第 <span id="q-index">1</span>/<span id="q-total">5</span> 题</div></div>
+  <div class="quiz-layout">
+    <div class="quiz-main">
+      <div id="quiz-area"></div>
+      <div id="quiz-feedback" style="display:none" class="card mt-20"></div>
+      <div class="quiz-bottom-nav" id="quiz-bottom-nav"></div>
+      <div class="quiz-prev-next">
+        <span class="btn-secondary" id="quiz-prev-btn" onclick="prevQuizQuestion()">← 上一题</span>
+        <span class="btn-primary" id="quiz-next-btn" onclick="nextQuizQuestion()">下一题 →</span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!-- ========== PAGE: WORD-LIST ========== -->
+<div id="page-word-list" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('vocabulary')">返回词库</div>
+  <div class="header"><div class="greeting" id="wordlist-name">词库</div><div class="header-sub" id="wordlist-desc"></div></div>
+  <div class="flex-between mb-20">
+    <div class="flex-1"><div class="progress-bg"><div class="progress-fill" id="wordlist-progress" style="width:0%"></div></div></div>
+    <span style="margin-left:12px;font-size:14px;font-weight:600" id="wordlist-progress-text">0/0</span>
+  </div>
+  <div id="word-list-items"></div>
+</div>
+</div>
+
+<!-- ========== PAGE: WORD-STUDY ========== -->
+<div id="page-word-study" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('vocabulary')">返回词库</div>
+  <div class="header"><div class="greeting">?? 单词学习</div></div>
+  <div id="word-study-card" class="word-card">
+    <div class="word-text" id="ws-word">abandon</div>
+    <div class="word-phonetic" id="ws-phonetic">/??b?nd?n/</div>
+    <div class="word-meaning" id="ws-meaning">v. 放弃；抛弃</div>
+    <div style="margin-top:8px" class="word-example" id="ws-example"></div>
+    <div class="word-example-cn" id="ws-example-cn"></div>
+    <button class="audio-btn mt-20" onclick="playWordAudio()">??</button>
+  </div>
+  <div class="flex-between mt-20">
+    <span class="btn-secondary" onclick="prevWord()">← 上一个</span>
+    <span class="tag tag-green" id="ws-index">1/12</span>
+    <span class="btn-primary" onclick="nextWord()">下一个 →</span>
+  </div>
+  <div class="flex-between mt-20">
+    <span class="btn-secondary" onclick="addToWordbookFromStudy()">?? 加入生词本</span>
+    <span class="btn-primary" onclick="markMastered()">? 已掌握</span>
+  </div>
+</div>
+</div>
+
+<!-- ========== PAGE: WORD-BOOK ========== -->
+<div id="page-wordbook" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('profile')">返回我的</div>
+  <div class="header"><div class="greeting">?? 我的生词本</div><div class="header-sub" id="wordbook-count">共 0 个单词</div></div>
+  <div id="wordbook-items"></div>
+  <div class="mt-30" id="wordbook-clear-btn" style="display:none"><span class="btn-secondary btn-block" onclick="clearWordbook()">??? 清空生词本</span></div>
+</div>
+</div>
+
+<!-- ========== PAGE: GROWTH-MAP ========== -->
+<div id="page-growth-map" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('profile')">返回我的</div>
+  <div class="header"><div class="greeting">?? 成长图谱</div><div class="header-sub">追踪你的每一步英语进阶</div></div>
+  <div id="growth-nodes"></div>
+</div>
+</div>
+
+<!-- ========== PAGE: DAILY-PLAN ========== -->
+<div id="page-daily-plan" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('index')">返回首页</div>
+  <div class="header"><div class="greeting">?? 今日学习计划</div><div class="header-sub" id="plan-date"></div></div>
+  <div id="plan-tasks"></div>
+  <div class="mt-20" id="plan-summary" style="display:none">
+    <div class="card" style="text-align:center">
+      <div style="font-size:36px;margin-bottom:8px">??</div>
+      <div class="card-title">恭喜完成今日所有任务！</div>
+      <div class="card-desc">继续保持，你的努力终将得到回报</div>
+    </div>
+  </div>
+</div>
+</div>
+<!-- ========== PAGE: MOCK-TEST ========== -->
+<div id="page-mock-test" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('exam')">返回真题</div>
+  <div class="test-header">
+    <div><strong id="test-title">模拟考试</strong></div>
+    <div style="color:#FF9500;font-weight:600" id="test-timer">00:00</div>
+    <div style="color:#8E8E93;font-size:13px" id="test-progress">0/20</div>
+  </div>
+  <div class="question-nav" id="question-navs"></div>
+  <div id="question-area"></div>
+  <div class="flex-between mt-20" id="test-nav-btns">
+    <span class="btn-secondary" onclick="testPrevQuestion()" style="visibility:hidden">← 上一题</span>
+    <span class="btn-primary" onclick="submitTest()">交卷</span>
+    <span class="btn-secondary" onclick="testNextQuestion()">下一题 →</span>
+  </div>
+</div>
+</div>
+
+<!-- ========== PAGE: TEST-RESULT ========== -->
+<div id="page-test-result" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('exam')">返回真题</div>
+  <div class="header" style="text-align:center">
+    <div class="greeting" id="tr-title">模拟考试</div>
+    <div class="header-sub">考试完成</div>
+  </div>
+  <div class="result-circle mt-20">
+    <div class="result-big" id="tr-score">75</div>
+    <div class="result-small">分</div>
+  </div>
+  <div class="card mt-20">
+    <div class="flex-between">
+      <div class="stat-block"><div class="stat-value" id="tr-correct">0</div><div class="stat-name">答对</div></div>
+      <div class="stat-block"><div class="stat-value" id="tr-wrong">0</div><div class="stat-name">答错</div></div>
+      <div class="stat-block"><div class="stat-value" id="tr-unanswered">0</div><div class="stat-name">未答</div></div>
+    </div>
+  </div>
+  <div class="mt-20"><span class="btn-primary btn-block" onclick="navToTab('exam')">返回考试首页</span></div>
+</div>
+</div>
+
+<script>
+// ============ DATA ============
+const wordLists = {
+  middleSchool: { name: '初中核心词汇', stage: 'basicVocab', level: 1, desc: '中考必备1500词，覆盖日常基础表达', totalWords: 1500, icon: '??', color: '#34C759' },
+  highSchool: { name: '高中核心词汇', stage: 'basicVocab', level: 2, desc: '高考3500词精选，衔接大学英语', totalWords: 3500, icon: '??', color: '#007AFF' },
+  cet4: { name: '四级核心词汇', stage: 'cet4', level: 3, desc: '四级高频词+真题例句，应试精准提分', totalWords: 2500, icon: '??', color: '#FF9500' },
+  cet6: { name: '六级核心词汇', stage: 'cet6', level: 4, desc: '六级核心词，剔除考纲冷门词', totalWords: 1800, icon: '??', color: '#FF3B30' },
+  ielts: { name: '雅思核心词汇', stage: 'ielts', level: 5, desc: '雅思听说读写场景分类词', totalWords: 3000, icon: '??', color: '#AF52DE' }
+};
+
+const sampleWords = [
+  { id: 1, text: 'abandon', phonetic: '/??b?nd?n/', meaning: 'v. 放弃；抛弃', stage: 'cet4', example: 'They had to abandon the plan due to bad weather.', exampleCn: '由于天气恶劣，他们不得不放弃计划。' },
+  { id: 2, text: 'ability', phonetic: '/??b?l?ti/', meaning: 'n. 能力；才能', stage: 'cet4', example: 'She has the ability to learn languages quickly.', exampleCn: '她有快速学习语言的能力。' },
+  { id: 3, text: 'abstract', phonetic: '/??bstr?kt/', meaning: 'adj. 抽象的 n. 摘要', stage: 'cet4', example: 'The concept is too abstract for beginners.', exampleCn: '这个概念对初学者来说太抽象了。' },
+  { id: 4, text: 'academic', phonetic: '/??k??dem?k/', meaning: 'adj. 学术的；学院的', stage: 'cet4', example: 'She published several academic papers.', exampleCn: '她发表了几篇学术论文。' },
+  { id: 5, text: 'accelerate', phonetic: '/?k?sel?re?t/', meaning: 'v. 加速；促进', stage: 'cet4', example: 'The government plans to accelerate economic growth.', exampleCn: '政府计划加速经济增长。' },
+  { id: 6, text: 'accommodation', phonetic: '/??k?m??de???n/', meaning: 'n. 住宿；调节', stage: 'cet4', example: 'The university provides accommodation for international students.', exampleCn: '大学为留学生提供住宿。' },
+  { id: 7, text: 'accompany', phonetic: '/??k?mp?ni/', meaning: 'v. 陪伴；伴随', stage: 'cet4', example: 'I will accompany you to the airport.', exampleCn: '我会陪你去机场。' },
+  { id: 8, text: 'achieve', phonetic: '/??t?i?v/', meaning: 'v. 实现；达到', stage: 'basicVocab', example: 'You can achieve anything if you work hard.', exampleCn: '只要努力，你可以实现任何目标。' },
+  { id: 9, text: 'adequate', phonetic: '/??d?kw?t/', meaning: 'adj. 足够的；适当的', stage: 'cet6', example: 'The supply is not adequate to meet the demand.', exampleCn: '供给不足以满足需求。' },
+  { id: 10, text: 'adolescent', phonetic: '/??d??les?nt/', meaning: 'n. 青少年 adj. 青春期的', stage: 'cet6', example: 'Adolescent mental health is increasingly important.', exampleCn: '青少年心理健康越来越重要。' },
+  { id: 11, text: 'analysis', phonetic: '/??n?l?s?s/', meaning: 'n. 分析；解析', stage: 'ielts', example: 'A thorough analysis of the data is required.', exampleCn: '需要对数据进行全面分析。' },
+  { id: 12, text: 'approach', phonetic: '/??pr??t?/', meaning: 'v./n. 接近；方法', stage: 'ielts', example: 'We need a new approach to this problem.', exampleCn: '我们需要解决这个问题的新方法。' }
+];
+
+const phoneticData = {
+  vowels: [
+    { symbol: 'i\u02D0', example: 'see /si\u02D0/', name: '长元音 /i?/', mouthShape: '嘴角向两边拉开，舌尖抵下齿，舌前部抬高，声带振动，发音较长', tip: '类似中文"衣"但发音更长更紧张', category: '长元音' },
+    { symbol: '?', example: 'sit /s?t/', name: '短元音 /?/', mouthShape: '嘴角微开，舌前部略抬高，发音短促放松', tip: '比长元音/i?/更短更放松，嘴唇肌肉不紧张', category: '短元音' },
+    { symbol: 'e', example: 'bed /bed/', name: '短元音 /e/', mouthShape: '嘴半开，舌前部微抬，嘴唇自然放松', tip: '类似中文"诶"但嘴型稍大', category: '短元音' },
+    { symbol: '?', example: 'cat /k?t/', name: '短元音 /?/', mouthShape: '嘴张大，舌前部最低，口腔开阔', tip: '类似"嗳"和"阿"之间，大嘴笑的口型', category: '短元音' },
+    { symbol: 'ɑ?', example: 'car /kɑ?/', name: '长元音 /ɑ?/', mouthShape: '嘴张大，舌后部压低，口腔打开最大', tip: '类似医生看喉咙时发"啊"音但更靠后', category: '长元音' },
+    { symbol: '?', example: 'hot /h?t/', name: '短元音 /?/', mouthShape: '嘴张圆，舌后部抬起，发音短促', tip: '嘴唇收圆但不要噘起，类似短促的"哦"', category: '短元音' },
+    { symbol: '??', example: 'door /d??/', name: '长元音 /??/', mouthShape: '双唇收圆前伸，舌后部抬高，发音较长', tip: '嘴唇用力收圆，比/?/嘴唇更紧张', category: '长元音' },
+    { symbol: '?', example: 'book /b?k/', name: '短元音 /?/', mouthShape: '双唇微圆前伸，舌后部微抬，短促发音', tip: '比/u?/嘴型更松，舌位更低', category: '短元音' },
+    { symbol: 'u?', example: 'too /tu?/', name: '长元音 /u?/', mouthShape: '双唇收得很圆前伸，舌后部高抬，发音较长', tip: '类似中文"乌"但嘴唇更用力前伸', category: '长元音' },
+    { symbol: '?', example: 'cup /k?p/', name: '短元音 /?/', mouthShape: '嘴自然张开，舌中部微抬，发音放松短促', tip: '类似中文短促的"啊"但舌位更居中', category: '短元音' },
+    { symbol: '??', example: 'bird /b??d/', name: '长元音 /??/', mouthShape: '嘴自然微开，舌中部抬高，发音较长', tip: '类似说"饿"但嘴唇不圆不扁，自然放松', category: '长元音' },
+    { symbol: '?', example: 'about /??ba?t/', name: '中元音 /?/', mouthShape: '嘴自然微开，舌中部放松，发音极短', tip: '最放松的元音，非重读音节中的"呃"', category: '中元音' }
+  ],
+  consonants: [
+    { symbol: 'p', example: 'pen /pen/', name: '清辅音 /p/', mouthShape: '双唇闭合，然后突然打开，气流冲出，声带不振动', tip: '类似中文"p"但声带不振动，更干脆', category: '爆破音' },
+    { symbol: 'b', example: 'big /b?g/', name: '浊辅音 /b/', mouthShape: '双唇闭合，然后突然打开，气流冲出，声带振动', tip: '和/p/口型相同但声带要振动', category: '爆破音' },
+    { symbol: 't', example: 'tea /ti?/', name: '清辅音 /t/', mouthShape: '舌尖抵上齿龈，然后突然离开，气流冲出，声带不振动', tip: '舌尖抵住上齿龈，中文"t"要送气更多', category: '爆破音' },
+    { symbol: 'd', example: 'dog /d?g/', name: '浊辅音 /d/', mouthShape: '舌尖抵上齿龈，然后突然离开，气流冲出，声带振动', tip: '和/t/口型相同但声带振动', category: '爆破音' },
+    { symbol: 'k', example: 'cat /k?t/', name: '清辅音 /k/', mouthShape: '舌后部抬起抵住软腭，突然离开，声带不振动', tip: '类似中文"k"但不送气太强', category: '爆破音' },
+    { symbol: 'g', example: 'go /g??/', name: '浊辅音 /g/', mouthShape: '舌后部抬起抵住软腭，突然离开，声带振动', tip: '和/k/口型相同但声带振动', category: '爆破音' },
+    { symbol: 'f', example: 'fish /f??/', name: '清辅音 /f/', mouthShape: '上齿轻咬下唇，气流从缝隙中挤出，声带不振动', tip: '上齿必须咬住下唇，不同于中文f', category: '摩擦音' },
+    { symbol: 'v', example: 'very /?veri/', name: '浊辅音 /v/', mouthShape: '上齿轻咬下唇，气流从缝隙中挤出，声带振动', tip: '和/f/口型相同但声带振动', category: '摩擦音' },
+    { symbol: 'θ', example: 'think /θ??k/', name: '清辅音 /θ/', mouthShape: '舌尖放在上下齿之间，气流挤出，声带不振动', tip: '舌尖轻触上齿，让气流从舌尖和上齿间通过', category: '摩擦音' },
+    { symbol: 'e', example: 'this /e?s/', name: '浊辅音 /e/', mouthShape: '舌尖放在上下齿之间，气流挤出，声带振动', tip: '和/θ/口型相同但声带振动', category: '摩擦音' },
+    { symbol: '?', example: 'she /?i?/', name: '清辅音 /?/', mouthShape: '双唇微圆前伸，舌前端接近硬腭，声带不振动', tip: '类似中文"sh"但嘴唇更圆更前伸', category: '摩擦音' },
+    { symbol: '?', example: 'vision /?v???n/', name: '浊辅音 /?/', mouthShape: '双唇微圆前伸，舌前端接近硬腭，声带振动', tip: '和/?/口型相同但声带振动', category: '摩擦音' }
+  ]
+};
+const examData = {
+  cet4: { name: '大学英语四级（CET-4）', sections: [
+    { name: '写作', duration: 30, type: 'writing', description: '30分钟，120-180词短文写作' },
+    { name: '听力理解', duration: 25, type: 'listening', description: '新闻、长对话、听力篇章' },
+    { name: '阅读理解', duration: 40, type: 'reading', description: '词汇理解、长篇阅读、仔细阅读' },
+    { name: '翻译', duration: 30, type: 'translation', description: '汉译英段落翻译' }
+  ], totalTime: 125, fullScore: 710, passScore: 425 },
+  cet6: { name: '大学英语六级（CET-6）', sections: [
+    { name: '写作', duration: 30, type: 'writing', description: '30分钟，150-200词短文写作' },
+    { name: '听力理解', duration: 30, type: 'listening', description: '长对话、听力篇章、讲座' },
+    { name: '阅读理解', duration: 40, type: 'reading', description: '词汇理解、长篇阅读、仔细阅读' },
+    { name: '翻译', duration: 30, type: 'translation', description: '汉译英段落翻译' }
+  ], totalTime: 130, fullScore: 710, passScore: 425 },
+  ielts: { name: '雅思（IELTS）', sections: [
+    { name: '听力', duration: 30, type: 'listening', description: '4个部分，40道题' },
+    { name: '阅读', duration: 60, type: 'reading', description: '3篇文章，40道题' },
+    { name: '写作', duration: 60, type: 'writing', description: 'Task 1图表+Task 2议论文' },
+    { name: '口语', duration: 14, type: 'speaking', description: 'Part 1-3 面对面口语测试' }
+  ], totalTime: 164, fullScore: 9, passScore: 6 }
+};
+
+const mockTests = [
+  { id: 1, examType: 'cet4', title: '四级全真模拟卷一', desc: '最新真题风格，覆盖写作、听力、阅读、翻译', questions: 57, duration: 125 },
+  { id: 2, examType: 'cet4', title: '四级全真模拟卷二', desc: '2024年6月真题改编，精准还原考试难度', questions: 57, duration: 125 },
+  { id: 3, examType: 'cet6', title: '六级全真模拟卷一', desc: '贴近真题难度，适合考前冲刺练习', questions: 57, duration: 130 }
+];
+
+const growthStages = [
+  { id: 'phonetics', name: '音标通关', desc: '48个国际音标全部掌握', icon: '??', target: 48, unit: '个音标' },
+  { id: 'basicVocab', name: '基础词汇', desc: '初中+高中核心词汇通关', icon: '??', target: 5000, unit: '个单词' },
+  { id: 'cet4', name: '四级通关', desc: '四级核心词汇+真题模拟', icon: '??', target: 2500, unit: '个四级词' },
+  { id: 'cet6', name: '六级进阶', desc: '六级核心词汇掌握', icon: '??', target: 1800, unit: '个六级词' },
+  { id: 'ielts', name: '雅思冲刺', desc: '雅思真题+口语进阶', icon: '??', target: 3000, unit: '个雅思词' }
+];
+
+const sentences = [
+  { en: 'The quick brown fox jumps over the lazy dog.', cn: '那只敏捷的棕色狐狸跳过了那只懒狗。', phonetic: '/e? kw?k bra?n f?ks d??mps ???v? e? ?le?zi d?g/' },
+  { en: 'I would like to make a reservation for two.', cn: '我想预订两个人的座位。', phonetic: '/a? w?d la?k t? me?k ? ?rez??ve???n f?? tu?/' },
+  { en: 'Could you please tell me the way to the station?', cn: '请问去车站怎么走？', phonetic: '/k?d ju? pli?z tel mi? e? we? t? e? ?ste???n/' },
+  { en: 'Learning English requires consistent practice.', cn: '学英语需要持续练习。', phonetic: '/?l??n?? ???ɡl?? r??kwa??z k?n?s?st?nt ?pr?kt?s/' }
+];
+
+const scenes = [
+  { name: '日常问候', icon: '??', desc: '常用打招呼、自我介绍', count: 20 },
+  { name: '购物场景', icon: '??', desc: '商场购物、讨价还价', count: 15 },
+  { name: '餐厅点餐', icon: '??', desc: '预约、点餐、结账', count: 18 },
+  { name: '旅行出行', icon: '??', desc: '机场、酒店、问路', count: 25 },
+  { name: '四六级口语', icon: '??', desc: 'CET口语真题演练', count: 30 },
+  { name: '雅思口语', icon: '??', desc: 'Part 1-3模拟', count: 40 }
+];
+
+const dailyPlanTasks = [
+  { id: 1, name: '音标特训 - 练习5组元音', type: 'phonetics', target: 5 },
+  { id: 2, name: '背词 - 学习10个新词', type: 'vocabulary', target: 10 },
+  { id: 3, name: '复习 - 根据遗忘曲线复习', type: 'review', target: 15 },
+  { id: 4, name: '口语练习 - 跟读3句', type: 'speaking', target: 3 },
+  { id: 5, name: '模拟测试 - 完成一组真题', type: 'exam', target: 1 }
+];
+// ============ STORAGE ============
+// ============ 多用户数据隔离 + 密码 ============
+
+// ============ Supabase 用户认证 ============
+let currentUser = null;
+
+function getCurrentUser() {
+  return currentUser ? currentUser.name : '';
+}
+
+function setCurrentUser(name) {
+  // 不再用 localStorage
+}
+
+async function getAllUsers() {
+  // 从 Supabase 读取所有用户名
+  const { data, error } = await supabase.from('users').select('name');
+  if (error) { console.error('getAllUsers error:', error); return {}; }
+  const users = {};
+  data.forEach(u => { users[u.name] = true; });
+  return users;
+}
+
+async function registerUser(name, password) {
+  const { data: existing, error: checkErr } = await supabase
+    .from('users').select('name').eq('name', name);
+  if (checkErr) { console.error('check error:', checkErr); return false; }
+  if (existing && existing.length > 0) return false; // 昵称已存在
+
+  const { error } = await supabase.from('users').insert([
+    { name: name, password: password, data: JSON.stringify(getDefaultStore()) }
+  ]);
+  if (error) { console.error('register error:', error); return false; }
+  return true;
+}
+
+async function verifyPassword(name, password) {
+  const { data, error } = await supabase
+    .from('users').select('password').eq('name', name).single();
+  if (error || !data) return false;
+  return data.password === password;
+}
+
+async function userExists(name) {
+  const { data, error } = await supabase
+    .from('users').select('name').eq('name', name);
+  if (error) return false;
+  return data && data.length > 0;
+}
+
+async function loadStore() {
+  const user = getCurrentUser();
+  if (!user) return {};
+  const { data, error } = await supabase
+    .from('users').select('data').eq('name', user).single();
+  if (error || !data) {
+    console.error('loadStore error:', error);
+    return {};
+  }
+  try { return JSON.parse(data.data || '{}'); } catch(e) { return {}; }
+}
+
+async function saveStore(store) {
+  const user = getCurrentUser();
+  if (!user) return;
+  const { error } = await supabase
+    .from('users').update({ data: JSON.stringify(store) }).eq('name', user);
+  if (error) console.error('saveStore error:', error);
+}
+
+function getDefaultStore() {
+  return {
+    wordbook: [], phoneticsCompleted: [], voiceStats: { totalRecordings: 0, avgScore: 0, bestScore: 0 },
+    testHistory: [], dailyPlanDone: {}, stageProgress: { phonetics: 0, basicVocab: 0, cet4: 0, cet6: 0, ielts: 0 },
+    badges: []
+  };
+}
+
+let store = getDefaultStore();
+async function persist() { await saveStore(store); }
+
+// ============ 登录弹窗 ============
+let loginMode = 'login'; // 'login' or 'register'
+
+function showLogin() {
+  document.getElementById('login-overlay').style.display = 'flex';
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login-input').value = '';
+  document.getElementById('login-password').value = '';
+  setLoginMode('login');
+  setTimeout(function() { document.getElementById('login-input').focus(); }, 200);
+}
+
+function setLoginMode(mode) {
+  loginMode = mode;
+  if (mode === 'register') {
+    document.getElementById('login-title').textContent = '?? 注册新账号';
+    document.getElementById('login-desc').textContent = '昵称就是你的账号';
+    document.getElementById('login-btn').textContent = '注 册';
+    document.getElementById('login-switch-hint').textContent = '已有账号？';
+    document.getElementById('login-switch-link').textContent = '去登录';
+  } else {
+    document.getElementById('login-title').textContent = '?? 欢迎回来';
+    document.getElementById('login-desc').textContent = '登录你的账号';
+    document.getElementById('login-btn').textContent = '登 录';
+    document.getElementById('login-switch-hint').textContent = '没有账号？';
+    document.getElementById('login-switch-link').textContent = '立即注册';
+  }
+}
+
+function toggleLoginMode() {
+  setLoginMode(loginMode === 'login' ? 'register' : 'login');
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+function showError(msg) {
+  var el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function handleLogin() {
+  var name = document.getElementById('login-input').value.trim();
+  var password = document.getElementById('login-password').value;
+
+  if (name.length < 2 || name.length > 10) {
+    showError('昵称需要 2-10 个字符');
+    return;
+  }
+  if (password.length < 4) {
+    showError('密码至少需要 4 位');
+    return;
+  }
+
+  document.getElementById('login-btn').disabled = true;
+  document.getElementById('login-btn').textContent = '请稍候...';
+
+  try {
+    if (loginMode === 'register') {
+      var exists = await userExists(name);
+      if (exists) {
+        showError('该昵称已被注册，请换一个或直接登录');
+        document.getElementById('login-btn').disabled = false;
+        setLoginMode('register');
+        return;
+      }
+      var ok = await registerUser(name, password);
+      if (!ok) {
+        showError('注册失败，请重试');
+        document.getElementById('login-btn').disabled = false;
+        setLoginMode('register');
+        return;
+      }
+    } else {
+      var exists = await userExists(name);
+      if (!exists) {
+        showError('该账号不存在，请先注册');
+        document.getElementById('login-btn').disabled = false;
+        setLoginMode('login');
+        return;
+      }
+      var ok = await verifyPassword(name, password);
+      if (!ok) {
+        showError('密码错误，请重试');
+        document.getElementById('login-btn').disabled = false;
+        setLoginMode('login');
+        return;
+      }
+    }
+
+    // 登录成功
+    currentUser = { name: name };
+    store = { ...getDefaultStore(), ...(await loadStore()) };
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('profile-name').textContent = name;
+    renderIndex();
+  } catch(e) {
+    console.error('Login error:', e);
+    showError('网络错误，请检查连接后重试');
+  }
+  document.getElementById('login-btn').disabled = false;
+  document.getElementById('login-btn').textContent = loginMode === 'register' ? '注 册' : '登 录';
+}
+
+async function logoutUser() {
+  if (confirm('确定要退出当前账号吗？数据不会丢失。')) {
+    currentUser = null;
+    store = getDefaultStore();
+    document.getElementById('profile-name').textContent = '点击登录';
+    showLogin();
+  }
+}
+// ============ STAGE ACTIONS ============
+function handleStageAction(el) {
+  const id = el.dataset.action;
+  if (id === 'phonetics') navToPage('phonetics');
+  else if (id === 'basicVocab' || id === 'cet4') navToTab('vocabulary');
+  else if (id === 'ielts') navToTab('exam');
+  else navToTab('index');
+}
+
+// ============ UTILS ============
+async function resetAllData() {
+  if (confirm('确定要重置所有学习数据吗？此操作不可恢复。')) {
+    store = getDefaultStore();
+    await persist();
+    renderIndex();
+    navToTab('index');
+    alert('数据已重置');
+  }
+}
+
+function fixStageActions() {
+  // Re-bind after render by using onclick in template with direct function names
+}
+
+
+// ============ 页面初始化 ============
+(async function initApp() {
+  // Supabase 不需要读取 localStorage，默认显示登录界面
+  // 用户需要重新登录
+  store = getDefaultStore();
+  showLogin();
+})();
+// Init
+
+// Handle navigation for word list callback
+document.addEventListener('click', function(e) {
+  // Check for back button in word-list page
+  if (e.target.closest('#page-word-list .back-btn')) {
+    navToTab('vocabulary');
+  }
+  if (e.target.closest('#page-word-study .back-btn')) {
+    if (store._reviewMode) navToTab('vocabulary');
+    else { currentPage = 'word-list'; document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById('page-word-list').classList.add('active'); renderWordList(); window.scrollTo(0,0); }
+  }
+  if (e.target.closest('#page-wordbook .back-btn')) {
+    navToTab('profile');
+  }
+  if (e.target.closest('#page-growth-map .back-btn')) {
+    navToTab('profile');
+  }
+  if (e.target.closest('#page-daily-plan .back-btn')) {
+    navToTab('index');
+  }
+  if (e.target.closest('#page-phonetics .back-btn')) {
+    navToTab('index');
+  }
+  if (e.target.closest('#page-phonetics-detail .back-btn')) {
+    navToPage('phonetics'); renderPhonetics();
+  }
+  if (e.target.closest('#page-phonetics-practice .back-btn')) {
+    navToPage('phonetics'); renderPhonetics();
+  }
+  if (e.target.closest('#page-mock-test .back-btn')) {
+    if (testTimer) clearInterval(testTimer);
+    navToTab('exam');
+  }
+  if (e.target.closest('#page-test-result .back-btn')) {
+    navToTab('exam');
+  }
+});
+</script>
+
+<!-- ============ 登录/注册弹窗 ============ -->
+<div class="login-overlay" id="login-overlay" style="display:none">
+  <div class="login-card">
+    <h2 id="login-title">?? 欢迎来到学英语</h2>
+    <p id="login-desc">登录你的账号</p>
+    <input type="text" id="login-input" placeholder="昵称（2-10个字）" maxlength="10" autocomplete="off">
+    <input type="password" id="login-password" placeholder="密码（至少4位）" maxlength="20" autocomplete="off" style="margin-top:10px">
+    <div class="login-error" id="login-error"></div>
+    <button class="btn-primary" id="login-btn" onclick="handleLogin()">登 录</button>
+    <div class="login-hint" style="margin-top:14px">
+      <span id="login-switch-hint">没有账号？</span>
+      <a href="javascript:void(0)" id="login-switch-link" onclick="toggleLoginMode()" style="color:#4A90D9;cursor:pointer">立即注册</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+
