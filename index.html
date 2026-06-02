@@ -1272,7 +1272,7 @@ function renderWordList(listId) {
   }
   // Word list
   html += words.map(function(w,i) {
-    return '<div class="word-list-item" onclick="openWordStudy('+i+',wordStudyList['+i+'].en,wordStudyList['+i+'].phon,wordStudyList['+i+'].cn)"><div class="word-en">'+w.en+' <span onclick="event.stopPropagation();speakWordItem(this.parentElement.textContent.split(" ")[0])" style="cursor:pointer;font-size:20px">&#x1F50A;</span></div><div class="word-phon">'+w.phon+'</div><div class="word-cn">'+w.cn+'</div></div>';
+    return '<div class="word-list-item" onclick="openWordStudy('+i+',wordStudyList['+i+'].en,wordStudyList['+i+'].phon,wordStudyList['+i+'].cn)"><div class="word-en">'+w.en+' <span onclick="event.stopPropagation();var w=this.parentElement.firstChild.textContent.trim();speakWordItem(w)" style="cursor:pointer;font-size:20px">&#x1F50A;</span></div><div class="word-phon">'+w.phon+'</div><div class="word-cn">'+w.cn+'</div></div>';
   }).join('');
   document.getElementById('word-list-items').innerHTML = html;
 }
@@ -2030,8 +2030,8 @@ function toggleMastered() {
   if (wordMastered) { btn.innerHTML = '&#x2705; 已掌握'; btn.style.background = '#34C759'; }
   else { btn.innerHTML = '&#x2B55; 标记已掌握'; btn.style.background = ''; }
 }
-function speakWord() { var el = document.getElementById('ws-word'); if (el && el.textContent) { var u = new SpeechSynthesisUtterance(el.textContent); u.lang = 'en-US'; u.rate = 0.8; window.speechSynthesis.speak(u); } }
-function speakWordItem(word) { if (!word) return; var u = new SpeechSynthesisUtterance(word); u.lang = 'en-US'; u.rate = 0.8; window.speechSynthesis.speak(u); }
+function speakWord() { var el = document.getElementById('ws-word'); if (el && el.textContent) { window.speechSynthesis.cancel(); setTimeout(function() { var u = new SpeechSynthesisUtterance(el.textContent); u.lang = 'en-US'; u.rate = 0.8; u.volume = 1; window.speechSynthesis.speak(u); }, 100); } }
+function speakWordItem(word) { if (!word) return; window.speechSynthesis.cancel(); setTimeout(function() { var u = new SpeechSynthesisUtterance(word); u.lang = 'en-US'; u.rate = 0.8; u.volume = 1; window.speechSynthesis.speak(u); }, 100); }
 function startReview() {
   if (!store.wordbook || store.wordbook.length === 0) { alert('暂无待复习单词'); return; }
   navToTab('vocabulary');
@@ -2039,10 +2039,14 @@ function startReview() {
 
 function speakSentence(text) {
   if (!text) return;
-  var u = new SpeechSynthesisUtterance(text);
-  u.lang = "en-US";
-  u.rate = 0.85;
-  window.speechSynthesis.speak(u);
+  window.speechSynthesis.cancel();
+  setTimeout(function() {
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    u.rate = 0.85;
+    u.volume = 1;
+    window.speechSynthesis.speak(u);
+  }, 100);
 }
 function playSentenceAudio() {
   var el = document.getElementById('sentence-en');
