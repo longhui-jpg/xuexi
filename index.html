@@ -1,0 +1,2307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>学英语 - 英语进阶之旅</title>
+
+<!-- Supabase SDK -->
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: #F5F7FA; color: #333; font-size: 14px; line-height: 1.6;
+  padding-bottom: 70px;
+}
+.plan-task { background: #F5F5F5; color: #999; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s; }
+.plan-task.done { background: #E8F5E9; color: #2E7D32; }
+.back-btn, .tab-item, .quick-item, .word-list-card, .phonetic-card, .stage-card, .plan-task, .mock-test-card, .growth-node, .scene-card, .exam-section-card, .word-list-item { cursor: pointer; transition: all 0.2s; }
+.growth-node { background: #FFF; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.growth-node.done { background: #E8F5E9; }
+.growth-icon { font-size: 24px; margin-bottom: 4px; }
+.growth-name { font-weight: 600; }
+.growth-stat { color: #8E8E93; font-size: 13px; }
+.progress-bg { height: 6px; background: #E5E5EA; border-radius: 3px; margin-top: 8px; }
+.progress-fill { height: 6px; background: #4A90D9; border-radius: 3px; }
+.avatar-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 16px; }
+.avatar-option { font-size: 36px; padding: 10px; border-radius: 14px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+.avatar-option:hover { background: #E8F5E9; }
+.avatar-option.selected { border-color: #4A90D9; background: #E3F2FD; }
+.back-btn:hover, .tab-item:hover, .quick-item:hover, .word-list-card:hover, .phonetic-card:hover, .stage-card:hover, .plan-task:hover, .mock-test-card:hover, .growth-node:hover, .scene-card:hover, .exam-section-card:hover, .word-list-item:hover { opacity: 0.7; }
+/* Fix: ensure all buttons have readable text */
+button { cursor: pointer; font-family: inherit; }
+.btn-primary, .btn-primary:hover, .btn-primary:active { color: #FFF !important; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+.btn-secondary { color: #4A90D9; }
+.audio-btn { color: #4A90D9; }
+/* Fix: detail page category display */
+#detail-cat { display: inline-block; }
+/* Fix: wordbook remove button visibility */
+.wordbook-item .btn-secondary { padding: 4px 12px; font-size: 12px; }
+/* Fix: speaking metric display for readability */
+.result-score { text-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+}
+.container { padding: 16px; min-height: 100vh; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* TabBar */
+.tab-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 60px;
+  background: #FFF; display: flex; border-top: 1px solid #E5E5EA;
+  z-index: 1000; padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; font-size: 10px; color: #8E8E93;
+  cursor: pointer; transition: color 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.tab-item.active { color: #4A90D9; }
+.tab-icon { font-size: 22px; margin-bottom: 2px; }
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, #4A90D9, #6BB8E8); color: #FFF;
+  border-radius: 22px; padding: 12px 28px; text-align: center; font-size: 16px;
+  font-weight: 600; border: none; cursor: pointer; display: inline-block;
+  box-shadow: 0 4px 16px rgba(74,144,217,0.3); -webkit-tap-highlight-color: transparent;
+}
+.btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+.btn-secondary {
+  background: #FFF; color: #4A90D9; border: 2px solid #4A90D9;
+  border-radius: 22px; padding: 10px 24px; text-align: center; font-size: 15px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.btn-sm { padding: 8px 16px !important; font-size: 13px !important; }
+.btn-block { display: block; width: 100%; }
+
+/* Card */
+.card {
+  background: #FFF; border-radius: 16px; padding: 20px;
+  margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.card-title { font-size: 17px; font-weight: 700; color: #1A1A2E; margin-bottom: 8px; }
+.card-desc { font-size: 13px; color: #8E8E93; line-height: 1.6; }
+.section-title { font-size: 16px; font-weight: 700; color: #1A1A2E; margin: 24px 0 16px; }
+
+/* Tags */
+.tag { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 11px; margin-right: 6px; margin-bottom: 4px; }
+.tag-blue { background: #EBF5FF; color: #4A90D9; }
+.tag-green { background: #E8F8EF; color: #34C759; }
+.tag-orange { background: #FFF3E0; color: #FF9500; }
+.tag-purple { background: #F3E8FF; color: #AF52DE; }
+.tag-red { background: #FFEBEE; color: #FF3B30; }
+
+
+/* Login Modal */
+.login-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+}
+.login-card {
+  background: #FFF; border-radius: 20px; padding: 32px 24px;
+  width: 90%; max-width: 360px; text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.login-card h2 { font-size: 22px; color: #1A1A2E; margin-bottom: 6px; }
+.login-card p { font-size: 13px; color: #8E8E93; margin-bottom: 20px; }
+.login-card input {
+  width: 100%; padding: 14px 16px; border: 2px solid #E5E5EA;
+  border-radius: 14px; font-size: 16px; text-align: center;
+  outline: none; transition: border-color 0.2s;
+}
+.login-card input:focus { border-color: #4A90D9; }
+.login-card .btn-primary {
+  width: 100%; margin-top: 16px; padding: 14px; font-size: 16px;
+}
+.login-card .login-hint {
+  font-size: 11px; color: #C7C7CC; margin-top: 12px;
+}
+.login-card .login-error {
+  font-size: 12px; color: #FF3B30; margin-top: 8px; display: none;
+}
+/* Quick user switcher in profile */
+.user-switcher {
+  display: flex; align-items: center; gap: 8px; margin-top: 12px;
+  flex-wrap: wrap;
+}
+.user-switcher .tag { cursor: pointer; padding: 6px 14px; font-size: 12px; }
+.user-switcher .tag.active-tag { background: #4A90D9; color: #FFF; }
+.user-switcher .logout-link {
+  font-size: 12px; color: #FF3B30; cursor: pointer; margin-left: auto;
+  text-decoration: underline;
+}
+/* Progress */
+.progress-bg { height: 10px; background: #E8ECF1; border-radius: 5px; overflow: hidden; }
+.progress-fill {
+  height: 100%; border-radius: 5px; transition: width 0.5s ease;
+  background: linear-gradient(90deg, #4A90D9, #6BB8E8);
+}
+
+/* Flex */
+.flex-row { display: flex; align-items: center; }
+.flex-col { display: flex; flex-direction: column; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.flex-wrap { display: flex; flex-wrap: wrap; }
+.flex-1 { flex: 1; }
+
+/* Spacing */
+.mt-10 { margin-top: 10px; } .mt-20 { margin-top: 20px; } .mt-30 { margin-top: 30px; }
+.mb-10 { margin-bottom: 10px; } .mb-20 { margin-bottom: 20px; }
+
+/* Header */
+.header { padding: 20px 0 10px; }
+.greeting { font-size: 22px; font-weight: 800; color: #1A1A2E; }
+.header-sub { font-size: 14px; color: #8E8E93; margin-top: 4px; }
+
+/* Stats */
+.stats-grid { display: flex; justify-content: space-around; }
+.stat-block { text-align: center; }
+.stat-value { font-size: 24px; font-weight: 800; color: #4A90D9; }
+.stat-name { font-size: 11px; color: #8E8E93; margin-top: 2px; }
+
+/* Daily card */
+.daily-card {
+  background: linear-gradient(135deg, rgba(74,144,217,0.08), rgba(107,184,232,0.12));
+  border: 2px solid rgba(74,144,217,0.15);
+}
+.daily-streak { font-size: 13px; color: #FF9500; font-weight: 600; }
+.daily-stats { justify-content: space-around; flex-wrap: wrap; gap: 10px; }
+.stat-item { text-align: center; min-width: 60px; }
+.stat-num { font-size: 22px; font-weight: 700; color: #4A90D9; }
+.stat-label { font-size: 11px; color: #8E8E93; margin-top: 2px; }
+
+/* Stage cards */
+.stage-card {
+  background: #FFF; border-radius: 16px; padding: 20px;
+  margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border-left: 4px solid #34C759;
+}
+.stage-icon { font-size: 32px; margin-right: 16px; width: 50px; height: 50px;
+  display: flex; align-items: center; justify-content: center;
+  background: #F5F7FA; border-radius: 12px; flex-shrink: 0;
+}
+.stage-name { font-size: 16px; font-weight: 700; color: #1A1A2E; }
+.stage-desc { font-size: 12px; color: #8E8E93; margin-top: 2px; }
+.stage-progress-text { font-size: 12px; color: #8E8E93; text-align: right; margin-top: 4px; }
+
+/* Quick actions */
+.quick-actions { gap: 12px; }
+.quick-item {
+  width: calc(25% - 9px); background: #FFF; border-radius: 14px;
+  padding: 16px 8px; text-align: center; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s;
+}
+.quick-item:active { transform: scale(0.95); }
+.quick-icon { font-size: 28px; margin-bottom: 6px; }
+.quick-label { font-size: 12px; color: #333; font-weight: 500; }
+
+/* Search */
+.search-bar { margin-bottom: 16px; }
+.search-input {
+  width: 100%; padding: 12px 16px; background: #FFF; border: none;
+  border-radius: 24px; font-size: 14px; outline: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* Review card */
+.review-card { background: linear-gradient(135deg, #FFFBEB, #FFF7ED); border: 1px solid #FDE68A; }
+
+/* Word list cards */
+.word-list-card {
+  background: #FFF; border-radius: 16px; padding: 20px; margin-bottom: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06); cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: transform 0.15s;
+}
+.word-list-card:active { transform: scale(0.98); }
+.list-icon { font-size: 32px; margin-right: 14px; width: 50px; height: 50px;
+  display: flex; align-items: center; justify-content: center;
+  background: #F5F7FA; border-radius: 12px; flex-shrink: 0;
+}
+.list-name { font-size: 16px; font-weight: 700; color: #1A1A2E; }
+.list-desc { font-size: 12px; color: #8E8E93; margin-top: 2px; }
+
+/* Exam tabs */
+.exam-tabs { margin-bottom: 16px; background: #FFF; border-radius: 12px; padding: 4px; }
+.exam-tab {
+  flex: 1; text-align: center; padding: 10px 12px; border-radius: 10px;
+  cursor: pointer; font-size: 14px; font-weight: 600; color: #8E8E93;
+  transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.exam-tab.active { background: #4A90D9; color: #FFF; }
+
+/* Section cards */
+.section-card { padding: 16px 20px !important; }
+.section-icon { font-size: 24px; margin-right: 14px; min-width: 40px; }
+.section-name { font-size: 15px; font-weight: 700; color: #1A1A2E; }
+.section-desc { font-size: 12px; color: #8E8E93; }
+.section-duration { font-size: 14px; color: #FF9500; font-weight: 600; }
+
+/* Mock test */
+.test-title { font-size: 15px; font-weight: 700; color: #1A1A2E; }
+
+/* Speaking */
+.sentence-card {
+  background: linear-gradient(135deg, #667EEA, #764BA2); color: #FFF;
+  border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 16px;
+}
+.sentence-en { font-size: 20px; font-weight: 600; line-height: 1.8; margin-bottom: 8px; }
+.sentence-cn { font-size: 14px; opacity: 0.85; }
+.record-btn {
+  width: 80px; height: 80px; border-radius: 50%; background: #FF3B30;
+  display: flex; align-items: center; justify-content: center;
+  margin: 20px auto; cursor: pointer; box-shadow: 0 4px 20px rgba(255,59,48,0.4);
+  transition: transform 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.record-btn.recording { background: #FF6B35; animation: pulse 1.5s infinite; }
+.record-btn:active { transform: scale(0.9); }
+.record-icon { font-size: 36px; }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,59,48,0.4); }
+  50% { box-shadow: 0 0 0 20px rgba(255,59,48,0); }
+}
+
+.result-card { text-align: center; }
+.result-score { font-size: 48px; font-weight: 800; color: #4A90D9; margin: 8px 0; }
+.result-metrics { display: flex; justify-content: space-around; margin: 16px 0; }
+.metric-item { text-align: center; }
+.metric-val { font-size: 20px; font-weight: 700; color: #4A90D9; }
+.metric-label { font-size: 11px; color: #8E8E93; }
+.tip-item {
+  background: #FFFBEB; border-radius: 8px; padding: 10px 14px;
+  margin-bottom: 8px; font-size: 13px; color: #92400E;
+}
+
+/* Scenes */
+.scene-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.scene-item {
+  background: #FFF; border-radius: 14px; padding: 16px; text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.scene-item:active { transform: scale(0.97); }
+.scene-icon { font-size: 28px; margin-bottom: 6px; }
+.scene-name { font-size: 14px; font-weight: 600; color: #1A1A2E; margin-bottom: 2px; }
+.scene-count { font-size: 11px; color: #8E8E93; }
+
+/* Profile */
+.profile-header { display: flex; align-items: center; }
+.avatar {
+  width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #4A90D9, #6BB8E8);
+  display: flex; align-items: center; justify-content: center; font-size: 28px;
+  color: #FFF; margin-right: 16px; flex-shrink: 0;
+}
+.user-name { font-size: 18px; font-weight: 700; color: #1A1A2E; }
+.user-level { font-size: 13px; color: #4A90D9; margin-top: 2px; }
+.badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.badge-item {
+  text-align: center; padding: 16px; background: #F5F7FA; border-radius: 14px;
+}
+.badge-item.earned { background: #EBF5FF; }
+.badge-icon { font-size: 28px; margin-bottom: 6px; }
+.badge-icon.locked { opacity: 0.3; }
+.badge-name { font-size: 11px; color: #333; font-weight: 500; }
+.badge-item.locked .badge-name { color: #C7C7CC; }
+
+/* Growth map */
+.map-node {
+  display: flex; align-items: stretch; margin-bottom: 16px;
+}
+.map-connector {
+  width: 4px; background: #E8ECF1; border-radius: 2px; margin: 0 20px;
+}
+.map-checkpoint {
+  background: #FFF; border-radius: 16px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  flex: 1; position: relative;
+}
+.checkpoint-dot {
+  width: 16px; height: 16px; border-radius: 50%; position: absolute;
+  left: -28px; top: 20px; border: 3px solid #FFF; box-shadow: 0 0 0 2px #4A90D9;
+}
+.checkpoint-dot.done { background: #34C759; }
+.checkpoint-dot.active { background: #4A90D9; }
+.checkpoint-dot.pending { background: #E8ECF1; }
+.checkpoint-name { font-size: 15px; font-weight: 700; color: #1A1A2E; }
+.checkpoint-desc { font-size: 12px; color: #8E8E93; margin-top: 4px; }
+
+/* Daily Plan */
+.plan-task {
+  background: #FFF; border-radius: 14px; padding: 16px; margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center;
+}
+.task-check {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid #D1D5DB;
+  margin-right: 14px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.task-check.done { background: #34C759; border-color: #34C759; }
+.task-check.done::after { content: '\2713?; color: #FFF; font-size: 14px; }
+.task-content { flex: 1; }
+.task-name { font-size: 15px; font-weight: 600; color: #1A1A2E; }
+.task-meta { font-size: 12px; color: #8E8E93; margin-top: 2px; }
+
+/* Phonetics List */
+.phonetic-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.phonetic-item {
+  background: #FFF; border-radius: 14px; padding: 14px 8px; text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.phonetic-item:active { transform: scale(0.95); }
+.phonetic-item.learned { border: 2px solid #34C759; }
+.phonetic-symbol { font-size: 22px; font-weight: 700; color: #4A90D9; }
+.phonetic-example { font-size: 10px; color: #8E8E93; margin-top: 4px; }
+
+/* Cat tabs */
+.cat-tabs { margin-bottom: 16px; background: #FFF; border-radius: 12px; padding: 4px; display: flex; }
+.cat-tab {
+  flex: 1; text-align: center; padding: 8px 12px; border-radius: 10px;
+  cursor: pointer; font-size: 13px; font-weight: 600; color: #8E8E93;
+  transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.cat-tab.active { background: #4A90D9; color: #FFF; }
+
+/* Detail page */
+.detail-hero {
+  background: linear-gradient(135deg, #4A90D9, #6BB8E8); color: #FFF;
+  border-radius: 20px; padding: 30px; text-align: center; margin-bottom: 20px;
+}
+.detail-symbol { font-size: 48px; font-weight: 800; margin-bottom: 8px; }
+.detail-name { font-size: 18px; opacity: 0.9; }
+.detail-tip { font-size: 13px; margin-top: 10px; opacity: 0.8; }
+
+/* Practice quiz */
+.quiz-layout { display: flex; flex-direction: column; }
+.quiz-bottom-nav {
+  display: flex; flex-wrap: nowrap; gap: 10px; justify-content: center;
+  padding: 14px; background: #FFF; border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-top: 16px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+.quiz-bottom-nav::-webkit-scrollbar { height: 4px; }
+.quiz-bottom-nav::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 2px; }
+.quiz-nav-dot {
+  width: 38px; height: 38px; border-radius: 50%; background: #E8ECF1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: #8E8E93; cursor: pointer;
+  transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+  border: 2px solid transparent;
+}
+.quiz-nav-dot.current { background: #4A90D9; color: #FFF; border-color: #4A90D9; transform: scale(1.12); box-shadow: 0 2px 8px rgba(74,144,217,0.35); }
+.quiz-nav-dot.correct { background: #D4EDDA; color: #155724; border-color: #34C759; }
+.quiz-nav-dot.wrong { background: #F8D7DA; color: #721C24; border-color: #FF3B30; }
+.quiz-nav-dot:active { transform: scale(0.92); }
+.quiz-main { flex: 1; }
+.quiz-prev-next { display: flex; gap: 10px; margin-top: 16px; }
+.quiz-prev-next .btn-secondary, .quiz-prev-next .btn-primary { flex: 1; text-align: center; }
+.quiz-question { font-size: 16px; font-weight: 600; line-height: 1.6; margin-bottom: 15px; }
+.quiz-option {
+  background: #FFF; border: 2px solid #E8ECF1; border-radius: 14px; padding: 14px 16px;
+  margin-bottom: 10px; cursor: pointer; font-size: 15px; transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.quiz-option:active { background: #F5F7FA; }
+.quiz-option.selected { border-color: #4A90D9; background: #EBF5FF; }
+.quiz-option.correct { border-color: #34C759; background: #E8F8EF; }
+.quiz-option.wrong { border-color: #FF3B30; background: #FFEBEE; }
+
+/* Finish screen */
+.finish-screen { text-align: center; padding: 40px 20px; }
+.finish-emoji { font-size: 60px; margin-bottom: 16px; }
+.finish-score { font-size: 36px; font-weight: 800; color: #4A90D9; }
+
+/* Word study */
+.word-card {
+  background: #FFF; border-radius: 20px; padding: 30px; text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08); min-height: 250px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.word-text { font-size: 32px; font-weight: 800; color: #1A1A2E; margin-bottom: 8px; }
+.word-phonetic { font-size: 18px; color: #8E8E93; margin-bottom: 16px; }
+.word-meaning { font-size: 18px; color: #4A90D9; margin-bottom: 12px; font-weight: 600; }
+.word-example { font-size: 13px; color: #8E8E93; line-height: 1.6; }
+.word-example-cn { font-size: 12px; color: #B0B0B0; margin-top: 4px; }
+
+/* Mock test */
+.test-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid #E8ECF1; margin-bottom: 16px;
+}
+.question-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.q-dot {
+  width: 32px; height: 32px; border-radius: 50%; background: #E8ECF1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.q-dot.answered { background: #4A90D9; color: #FFF; }
+.q-dot.current { border: 2px solid #4A90D9; }
+.question-stem { font-size: 16px; font-weight: 600; margin-bottom: 16px; line-height: 1.6; }
+
+/* Test result */
+.result-circle {
+  width: 120px; height: 120px; border-radius: 50%;
+  background: linear-gradient(135deg, #4A90D9, #6BB8E8);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  margin: 0 auto;
+}
+.result-big { font-size: 40px; font-weight: 800; color: #FFF; }
+.result-small { font-size: 12px; color: rgba(255,255,255,0.8); }
+
+/* Wordbook */
+.wordbook-item {
+  background: #FFF; border-radius: 14px; padding: 16px; margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.wordbook-word { font-size: 18px; font-weight: 700; color: #1A1A2E; }
+.wordbook-phonetic { font-size: 14px; color: #8E8E93; }
+.wordbook-meaning { font-size: 14px; color: #4A90D9; margin-top: 4px; }
+
+/* Back button */
+..back-btn { display: inline-block; padding: 8px 16px; margin-bottom: 12px; color: #4A90D9; font-size: 14px; border-radius: 8px; background: rgba(74,144,217,0.08); }
+.back-btn {
+  display: inline-flex; align-items: center; cursor: pointer; font-size: 15px;
+  color: #4A90D9; margin-bottom: 12px; font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
+}
+.back-btn::before { content: '\2190?; margin-right: 4px; font-size: 18px; }
+
+/* Audio btn */
+.audio-btn {
+  background: #EBF5FF; border: none; border-radius: 50%; width: 44px; height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 20px; -webkit-tap-highlight-color: transparent;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 2000; display: none;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal-content {
+  background: #FFF; border-radius: 20px; padding: 24px; width: 90%; max-width: 380px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<!-- TabBar -->
+<div class="tab-bar">
+  <div class="tab-item active" data-tab="index">
+    <div class="tab-icon">&#x1F3E0;</div><span>学习中心</span>
+  </div>
+  <div class="tab-item" data-tab="vocabulary">
+    <div class="tab-icon">&#x1F4DA;</div><span>词库背词</span>
+  </div>
+  <div class="tab-item" data-tab="exam">
+    <div class="tab-icon">&#x1F4DD;</div><span>真题模拟</span>
+  </div>
+  <div class="tab-item" data-tab="speaking">
+    <div class="tab-icon">&#x1F399;</div><span>口语纠音</span>
+  </div>
+  <div class="tab-item" data-tab="profile">
+    <div class="tab-icon">&#x1F464;</div><span>我的</span>
+  </div>
+</div>
+
+<!-- ========== PAGE: INDEX ========== -->
+<div id="page-index" class="page active">
+<div class="container">
+  <div class="header">
+    <div class="greeting">早上好！&#x2600;</div>
+    <div class="header-sub">继续你的英语进阶之旅</div>
+  </div>
+
+  <!-- 今日学习进度 -->
+  <div class="card daily-card">
+    <div class="flex-between">
+      <div class="card-title">&#x1F4CA; 今日学习进度</div>
+      <div class="daily-streak">&#x1F525; 连续<span id="streak-days">3</span>天</div>
+    </div>
+    <div class="daily-stats flex-row mt-20" id="today-stats">
+      <div class="stat-item"><div class="stat-num">12</div><div class="stat-label">新词</div></div>
+      <div class="stat-item"><div class="stat-num">28</div><div class="stat-label">复习</div></div>
+      <div class="stat-item"><div class="stat-num">35min</div><div class="stat-label">学习时长</div></div>
+      <div class="stat-item"><div class="stat-num">52</div><div class="stat-label">今日得分</div></div>
+    </div>
+    <div class="mt-20"><span class="btn-primary btn-block" onclick="navToPage('daily-plan')">开始今日学习计划</span></div>
+  </div>
+
+  <!-- 四大阶段 -->
+  <div class="section-title mt-30">&#x1F4AD; 学习进阶路径</div>
+  <div id="stages-container"></div>
+
+  <!-- 快捷入口 -->
+  <div class="section-title mt-30">&#x26A1; 快捷入口</div>
+  <div class="flex-row quick-actions">
+    <div class="quick-item" onclick="navToPage('wordbook')"><div class="quick-icon">&#x1F530;</div><div class="quick-label">生词本</div></div>
+    <div class="quick-item" onclick="navToPage('growth-map')"><div class="quick-icon">&#x1F530;</div><div class="quick-label">成长图谱</div></div>
+    <div class="quick-item" onclick="navToPage('daily-plan')"><div class="quick-icon">&#x1F530;</div><div class="quick-label">学习计划</div></div>
+    <div class="quick-item" onclick="navToPage('phonetics')"><div class="quick-icon">&#x1F530;</div><div class="quick-label">音标特训</div></div>
+  </div>
+</div>
+</div>
+<!-- ========== PAGE: VOCABULARY ========== -->
+<div id="page-vocabulary" class="page">
+<div class="container">
+  <div class="search-bar"><input class="search-input" placeholder="&#x1F50D; 搜索单词..." id="vocab-search"></div>
+  <div id="review-card" class="card review-card" style="display:none">
+    <div class="flex-between">
+      <div><div class="card-title">&#x1F4DD; 待复习单词</div><div class="card-desc" id="review-desc">根据遗忘曲线，需要复习单词</div></div>
+      <span class="btn-primary btn-sm" onclick="startReview()">立即复习</span>
+    </div>
+  </div>
+  <div class="section-title mt-20">&#x1F4DA; 选择词库</div>
+  <div id="word-lists-container"></div>
+  <div class="section-title mt-30">&#x1F4CA; 背词统计</div>
+  <div class="card">
+    <div class="flex-between">
+      <div class="stat-block"><div class="stat-value" id="stat-learned">0</div><div class="stat-name">已学单词</div></div>
+      <div class="stat-block"><div class="stat-value" id="stat-mastered">0</div><div class="stat-name">熟练掌握</div></div>
+      <div class="stat-block"><div class="stat-value" id="stat-reviewing">0</div><div class="stat-name">复习中</div></div>
+      <div class="stat-block"><div class="stat-value">3天</div><div class="stat-name">连续打卡</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ========== PAGE: EXAM ========== -->
+<div id="page-exam" class="page">
+<div class="container">
+  <div class="exam-tabs flex-row">
+    <div class="exam-tab active" data-exam="cet4" onclick="switchExam('cet4')">四级</div>
+    <div class="exam-tab" data-exam="cet6" onclick="switchExam('cet6')">六级</div>
+    <div class="exam-tab" data-exam="ielts" onclick="switchExam('ielts')">雅思</div>
+  </div>
+  <div id="exam-info-card"></div>
+  <div class="section-title">&#x1F4CB; 题型结构</div>
+  <div id="exam-sections"></div>
+  <div class="section-title mt-20">&#x1F4DD; 模拟试卷</div>
+  <div id="mock-tests"></div>
+</div>
+</div>
+
+<!-- ========== PAGE: SPEAKING ========== -->
+<div id="page-speaking" class="page">
+<div class="container">
+  <div class="stats-grid mb-20">
+    <div class="stat-block"><div class="stat-value" id="voice-total">0</div><div class="stat-name">录音次数</div></div>
+    <div class="stat-block"><div class="stat-value" id="voice-avg">0</div><div class="stat-name">平均分</div></div>
+    <div class="stat-block"><div class="stat-value" id="voice-best">0</div><div class="stat-name">最高分</div></div>
+  </div>
+
+  <div class="sentence-card" id="sentence-card">
+    <div class="sentence-en" id="sentence-en">The quick brown fox jumps over the lazy dog.</div>
+    <div class="sentence-cn" id="sentence-cn">那只敏捷的棕色狐狸跳过了那只懒狗。</div>
+    <div class="sentence-cn" id="sentence-phonetic" style="font-size:12px;margin-top:4px;"></div>
+    <button class="audio-btn" onclick="playSentenceAudio()" style="margin-top:12px;">&#x1F50A; 播放</button>
+  </div>
+
+  <div class="record-btn" id="record-btn" onclick="toggleRecord()"><div class="record-icon">&#x1F4DA;</div></div>
+
+  <div id="speaking-result" style="display:none" class="card result-card mt-20">
+    <div class="card-title">&#x1F3AF; 评测结果</div>
+    <div class="result-score" id="speak-score">85</div>
+    <div class="result-metrics">
+      <div class="metric-item"><div class="metric-val" id="metric-acc">82</div><div class="metric-label">准确度</div></div>
+      <div class="metric-item"><div class="metric-val" id="metric-flu">75</div><div class="metric-label">流利度</div></div>
+      <div class="metric-item"><div class="metric-val" id="metric-comp">92</div><div class="metric-label">完整度</div></div>
+    </div>
+    <div id="speaking-tips"></div>
+    <div class="mt-20"><span class="btn-secondary" onclick="nextSentence()">下一句 →</span></div>
+  </div>
+
+  <div class="section-title mt-30">&#x1F4AC; 场景练习</div>
+  <div class="scene-grid" id="scene-grid"></div>
+</div>
+</div>
+<!-- ========== PAGE: PROFILE ========== -->
+<div id="page-profile" class="page">
+<div class="container">
+  <div class="card profile-header">
+    <div class="avatar" id="avatar-display" onclick="showAvatarPicker()">&#x1F996;</div>
+    <div class="flex-1">
+      <div class="user-name" id="profile-name" style="cursor:pointer" onclick="showLogin()">点击登录</div>
+      <div class="user-level">Lv.3 初级进阶者</div>
+    </div>
+    <span class="tag tag-blue" onclick="showLogin()">切换账号</span>
+  </div>
+
+  <div class="card stats-grid mt-20">
+    <div class="stat-block" onclick="navToPage('wordbook')" style="cursor:pointer">
+      <div class="stat-value" id="prof-wordbook">0</div><div class="stat-name">生词本</div>
+    </div>
+    <div class="stat-block" onclick="navToPage('phonetics')" style="cursor:pointer">
+      <div class="stat-value" id="prof-phonetics">0</div><div class="stat-name">音标掌握</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-value" id="prof-tests">0</div><div class="stat-name">模考次数</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-value" id="prof-streak">0天</div><div class="stat-name">连续学习</div>
+    </div>
+  </div>
+
+  <div class="section-title">&#x1F3C5; 成就勋章</div>
+  <div class="badge-grid" id="badge-grid"></div>
+
+  <div class="section-title mt-30">&#x2699; 快捷功能</div>
+  <div class="word-list-card" onclick="navToPage('wordbook')" style="padding:14px 20px">
+    <div class="flex-between"><span>&#x1F4D6; 我的生词本</span><span style="color:#8E8E93">→</span></div>
+  </div>
+  <div class="word-list-card" onclick="navToPage('growth-map')" style="padding:14px 20px">
+    <div class="flex-between"><span>&#x1F4C8; 成长图谱</span><span style="color:#8E8E93">→</span></div>
+  </div>
+  <div class="word-list-card" onclick="navToPage('phonetics')" style="padding:14px 20px">
+    <div class="flex-between"><span>&#x1F3A4; 音标特训</span><span style="color:#8E8E93">→</span></div>
+  </div>
+  <div class="word-list-card" onclick="navToPage('daily-plan')" style="padding:14px 20px">
+    <div class="flex-between"><span>&#x1F4C5; 每日学习计划</span><span style="color:#8E8E93">→</span></div>
+  </div>
+  <div class="word-list-card" onclick="resetAllData()" style="padding:14px 20px">
+    <div class="flex-between"><span>&#x26A0; 重置所有数据</span><span style="color:#FF3B30">→</span></div>
+  </div>
+</div>
+</div>
+<!-- ========== PAGE: PHONETICS ========== -->
+<div id="page-phonetics" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('index')">返回</div>
+  <div class="header"><div class="greeting">&#x1F3A4; 音标特训</div><div class="header-sub">48个国际音标精学 + AI纠音</div></div>
+  <div class="flex-between mb-20">
+    <div class="flex-1"><div class="progress-bg"><div class="progress-fill" id="phonetics-progress" style="width:0%"></div></div></div>
+    <span style="margin-left:12px;font-size:14px;font-weight:600" id="phonetics-progress-text">0/48</span>
+  </div>
+  <div class="cat-tabs">
+    <div class="cat-tab active" data-cat="all" onclick="switchPhoneticCat('all')">全部</div>
+    <div class="cat-tab" data-cat="vowels" onclick="switchPhoneticCat('vowels')">元音(20)</div>
+    <div class="cat-tab" data-cat="consonants" onclick="switchPhoneticCat('consonants')">辅音(28)</div>
+  </div>
+  <div id="phonetic-grid" class="phonetic-grid"></div>
+  <div class="mt-20"><span class="btn-primary btn-block" onclick="navToPage('phonetics-practice')">&#x25B6; 开始音标练习</span></div>
+</div>
+</div>
+
+<!-- ========== PAGE: PHONETICS DETAIL ========== -->
+<div id="page-phonetics-detail" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToPage('phonetics')">返回音标列表</div>
+  <div class="detail-hero">
+    <div class="detail-symbol" id="detail-symbol">/i:/</div>
+    <div class="detail-name" id="detail-name">长元音 /i:/</div>
+    <div style="margin-top:12px" id="detail-example">例：see /si:/</div>
+    <div style="margin-top:16px;display:flex;gap:10px;justify-content:center">
+      <button class="audio-btn" onclick="speakPhonemeDetail()" style="background:rgba(0,0,0,0.25);color:#FFF;width:auto;padding:0 20px;border-radius:22px;font-size:15px;font-weight:600;border:1px solid rgba(255,255,255,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.3);">&#x1F509; 标准发音</button>
+      <button class="audio-btn" onclick="speakPhonemeSlow()" style="background:rgba(0,0,0,0.25);color:#FFF;width:auto;padding:0 20px;border-radius:22px;font-size:15px;font-weight:600;border:1px solid rgba(255,255,255,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.3);">&#x1F50A; 慢速发音</button>
+      <button class="audio-btn" onclick="stopSpeaking()" style="background:rgba(0,0,0,0.25);color:#FFF;width:auto;padding:0 20px;border-radius:22px;font-size:15px;font-weight:600;border:1px solid rgba(255,255,255,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.3);">&#x23F9; 停止</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">&#x1F444; 口型要点</div>
+    <div class="card-desc" id="detail-mouth"></div>
+  </div>
+  <div class="card mt-20">
+    <div class="card-title">&#x1F4A1; 发音技巧</div>
+    <div class="card-desc" id="detail-tip"></div>
+  </div>
+  <div class="card mt-20">
+    <div class="card-title">&#x1F4C2; 分类</div>
+    <span class="tag tag-blue" id="detail-cat"></span>
+  </div>
+</div>
+</div>
+
+<!-- ========== PAGE: PHONETICS PRACTICE ========== -->
+<div id="page-phonetics-practice" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToPage('phonetics')">返回音标列表</div>
+  <div class="header"><div class="greeting">&#x1F3A4; 音标练习</div><div class="header-sub">第 <span id="q-index">1</span>/<span id="q-total">5</span> 题</div></div>
+  <div class="quiz-layout">
+    <div class="quiz-main">
+      <div id="quiz-area"></div>
+      <div id="quiz-feedback" style="display:none" class="card mt-20"></div>
+      <div class="quiz-bottom-nav" id="quiz-bottom-nav"></div>
+      <div class="quiz-prev-next">
+        <span class="btn-secondary" id="quiz-prev-btn" onclick="prevQuizQuestion()">← 上一题</span>
+        <span class="btn-primary" id="quiz-next-btn" onclick="nextQuizQuestion()">下一题 →</span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!-- ========== PAGE: WORD-LIST ========== -->
+<div id="page-word-list" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('vocabulary')">返回词库</div>
+  <div class="header"><div class="greeting" id="wordlist-name">词库</div><div class="header-sub" id="wordlist-desc"></div></div>
+  <div class="flex-between mb-20">
+    <div class="flex-1"><div class="progress-bg"><div class="progress-fill" id="wordlist-progress" style="width:0%"></div></div></div>
+    <span style="margin-left:12px;font-size:14px;font-weight:600" id="wordlist-progress-text">0/0</span>
+  </div>
+  <div id="word-list-items"></div>
+</div>
+</div>
+
+<!-- ========== PAGE: WORD-STUDY ========== -->
+<div id="page-word-study" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('vocabulary')">返回词库</div>
+  <div class="header"><div class="greeting">&#x1F4DA; 单词学习</div></div>
+  <div id="word-study-card" class="word-card">
+    <div class="word-text" id="ws-word">abandon</div>
+    <div class="word-phonetic" id="ws-phonetic">/əbændən/</div>
+    <div class="word-meaning" id="ws-meaning">v. 放弃；抛弃</div>
+    <div style="margin-top:8px" class="word-example" id="ws-example"></div>
+    <div class="word-example-cn" id="ws-example-cn"></div>
+    <div style="margin-top:10px;padding:10px;background:#F5F7FA;border-radius:10px;font-size:13px;line-height:1.8" id="ws-sentences">选择单词查看例句</div>
+    
+  </div>
+  <div class="flex-between mt-20">
+    <span class="btn-secondary" onclick="prevWord()">← 上一个</span>
+    <span class="tag tag-green" id="ws-index">1/12</span>
+    <span class="btn-primary" onclick="nextWord()">下一个 →</span>
+  </div>
+  <div class="flex-between mt-20">
+    <span class="btn-secondary" onclick="addToWordbookFromStudy()">&#x1F4D6; 加入生词本</span>
+    <span class="btn-primary" id="mastered-btn" onclick="toggleMastered()">&#x2B55; 标记已掌握</span>
+  </div>
+</div>
+</div>
+
+<!-- ========== PAGE: WORD-BOOK ========== -->
+<div id="page-wordbook" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('profile')">返回我的</div>
+  <div class="header"><div class="greeting">&#x1F4D6; 我的生词本</div><div class="header-sub" id="wordbook-count">共 0 个单词</div></div>
+  <div id="wordbook-items"></div>
+  <div class="mt-30" id="wordbook-clear-btn" style="display:none"><span class="btn-secondary btn-block" onclick="clearWordbook()">&#x1F5D1; 清空生词本</span></div>
+</div>
+</div>
+
+<!-- ========== PAGE: GROWTH-MAP ========== -->
+<div id="page-growth-map" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('profile')">返回我的</div>
+  <div class="header"><div class="greeting">&#x1F4C8; 成长图谱</div><div class="header-sub">追踪你的每一步英语进阶</div></div>
+  <div id="growth-nodes"></div>
+</div>
+</div>
+
+<!-- ========== PAGE: DAILY-PLAN ========== -->
+<div id="page-daily-plan" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('index')">返回首页</div>
+  <div class="header"><div class="greeting">&#x1F4C5; 今日学习计划</div><div class="header-sub" id="plan-date"></div></div>
+  <div id="plan-tasks"></div>
+  <div class="mt-20" id="plan-summary" style="display:none">
+    <div class="card" style="text-align:center">
+      <div style="font-size:36px;margin-bottom:8px">??</div>
+      <div class="card-title">恭喜完成今日所有任务！</div>
+      <div class="card-desc">继续保持，你的努力终将得到回报</div>
+    </div>
+  </div>
+</div>
+</div>
+<!-- ========== PAGE: MOCK-TEST ========== -->
+<div id="page-mock-test" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('exam')">返回真题</div>
+  <div class="test-header">
+    <div><strong id="test-title">模拟考试</strong></div>
+    <div style="color:#FF9500;font-weight:600" id="test-timer">00:00</div>
+    <div style="color:#8E8E93;font-size:13px" id="test-progress">0/20</div>
+  </div>
+  <div class="question-nav" id="question-navs"></div>
+  <div id="question-area"></div>
+  <div class="flex-between mt-20" id="test-nav-btns">
+    <span class="btn-secondary" onclick="testPrevQuestion()" style="visibility:hidden">← 上一题</span>
+    <span class="btn-primary" onclick="submitTest()">交卷</span>
+    <span class="btn-secondary" onclick="testNextQuestion()">下一题 →</span>
+  </div>
+</div>
+</div>
+
+<!-- ========== PAGE: TEST-RESULT ========== -->
+<div id="page-test-result" class="page">
+<div class="container">
+  <div class="back-btn" onclick="navToTab('exam')">返回真题</div>
+  <div class="header" style="text-align:center">
+    <div class="greeting" id="tr-title">模拟考试</div>
+    <div class="header-sub">考试完成</div>
+  </div>
+  <div class="result-circle mt-20">
+    <div class="result-big" id="tr-score">75</div>
+    <div class="result-small">分</div>
+  </div>
+  <div class="card mt-20">
+    <div class="flex-between">
+      <div class="stat-block"><div class="stat-value" id="tr-correct">0</div><div class="stat-name">答对</div></div>
+      <div class="stat-block"><div class="stat-value" id="tr-wrong">0</div><div class="stat-name">答错</div></div>
+      <div class="stat-block"><div class="stat-value" id="tr-unanswered">0</div><div class="stat-name">未答</div></div>
+    </div>
+  </div>
+  <div class="mt-20"><span class="btn-primary btn-block" onclick="navToTab('exam')">返回考试首页</span></div>
+</div>
+</div>
+
+<script>
+// ============ DATA ============
+const wordLists = {
+  middleSchool: { name: '初中核心词汇', stage: 'basicVocab', level: 1, desc: '中考必备1500词，覆盖日常基础表达', totalWords: 1500, icon: '\u{1F530}', color: '#34C759' },
+  highSchool: { name: '高中核心词汇', stage: 'basicVocab', level: 2, desc: '高考3500词精选，衔接大学英语', totalWords: 3500, icon: '\u{1F530}', color: '#007AFF' },
+  cet4: { name: '四级核心词汇', stage: 'cet4', level: 3, desc: '四级高频词+真题例句，应试精准提分', totalWords: 2500, icon: '\u{1F530}', color: '#FF9500' },
+  cet6: { name: '六级核心词汇', stage: 'cet6', level: 4, desc: '六级核心词，剔除考纲冷门词', totalWords: 1800, icon: '\u{1F530}', color: '#FF3B30' },
+  ielts: { name: '雅思核心词汇', stage: 'ielts', level: 5, desc: '雅思听说读写场景分类词', totalWords: 3000, icon: '\u{1F530}', color: '#AF52DE' }
+};
+
+const sampleWords = [
+  { id: 1, text: 'abandon', phonetic: '/\u0259\u02C8b?nd?n/', meaning: 'v. 放弃；抛弃', stage: 'cet4', example: 'They had to abandon the plan due to bad weather.', exampleCn: '由于天气恶劣，他们不得不放弃计划。' },
+  { id: 2, text: 'ability', phonetic: '/\u0259\u02C8b?l?ti/', meaning: 'n. 能力；才能', stage: 'cet4', example: 'She has the ability to learn languages quickly.', exampleCn: '她有快速学习语言的能力。' },
+  { id: 3, text: 'abstract', phonetic: '/\u0259\u02C8bstr?kt/', meaning: 'adj. 抽象的 n. 摘要', stage: 'cet4', example: 'The concept is too abstract for beginners.', exampleCn: '这个概念对初学者来说太抽象了。' },
+  { id: 4, text: 'academic', phonetic: '/\u0259\u02C8k??dem?k/', meaning: 'adj. 学术的；学院的', stage: 'cet4', example: 'She published several academic papers.', exampleCn: '她发表了几篇学术论文。' },
+  { id: 5, text: 'accelerate', phonetic: '/?k?sel?re?t/', meaning: 'v. 加速；促进', stage: 'cet4', example: 'The government plans to accelerate economic growth.', exampleCn: '政府计划加速经济增长。' },
+  { id: 6, text: 'accommodation', phonetic: '/\u0259\u02C8k?m??de???n/', meaning: 'n. 住宿；调节', stage: 'cet4', example: 'The university provides accommodation for international students.', exampleCn: '大学为留学生提供住宿。' },
+  { id: 7, text: 'accompany', phonetic: '/\u0259\u02C8k?mp?ni/', meaning: 'v. 陪伴；伴随', stage: 'cet4', example: 'I will accompany you to the airport.', exampleCn: '我会陪你去机场。' },
+  { id: 8, text: 'achieve', phonetic: '/??t?i?v/', meaning: 'v. 实现；达到', stage: 'basicVocab', example: 'You can achieve anything if you work hard.', exampleCn: '只要努力，你可以实现任何目标。' },
+  { id: 9, text: 'adequate', phonetic: '/\u0259\u02C8d?kw?t/', meaning: 'adj. 足够的；适当的', stage: 'cet6', example: 'The supply is not adequate to meet the demand.', exampleCn: '供给不足以满足需求。' },
+  { id: 10, text: 'adolescent', phonetic: '/\u0259\u02C8d??les?nt/', meaning: 'n. 青少年 adj. 青春期的', stage: 'cet6', example: 'Adolescent mental health is increasingly important.', exampleCn: '青少年心理健康越来越重要。' },
+  { id: 11, text: 'analysis', phonetic: '/\u0259\u02C8n?l?s?s/', meaning: 'n. 分析；解析', stage: 'ielts', example: 'A thorough analysis of the data is required.', exampleCn: '需要对数据进行全面分析。' },
+  { id: 12, text: 'approach', phonetic: '/??pr??t?/', meaning: 'v./n. 接近；方法', stage: 'ielts', example: 'We need a new approach to this problem.', exampleCn: '我们需要解决这个问题的新方法。' }
+];
+
+const phoneticData = {
+  vowels: [
+    { symbol: 'i\u02D0', example: 'see /si\u02D0/', name: '长元音 /i?/', mouthShape: '嘴角向两边拉开，舌尖抵下齿，舌前部抬高，声带振动，发音较长', tip: '类似中文"衣"但发音更长更紧张', category: '长元音' },
+    { symbol: '?', example: 'sit /s?t/', name: '短元音 /?/', mouthShape: '嘴角微开，舌前部略抬高，发音短促放松', tip: '比长元音/i?/更短更放松，嘴唇肌肉不紧张', category: '短元音' },
+    { symbol: 'e', example: 'bed /bed/', name: '短元音 /e/', mouthShape: '嘴半开，舌前部微抬，嘴唇自然放松', tip: '类似中文"诶"但嘴型稍大', category: '短元音' },
+    { symbol: '?', example: 'cat /k?t/', name: '短元音 /?/', mouthShape: '嘴张大，舌前部最低，口腔开阔', tip: '类似"嗳"和"阿"之间，大嘴笑的口型', category: '短元音' },
+    { symbol: 'ɑ?', example: 'car /kɑ?/', name: '长元音 /ɑ?/', mouthShape: '嘴张大，舌后部压低，口腔打开最大', tip: '类似医生看喉咙时发"啊"音但更靠后', category: '长元音' },
+    { symbol: '?', example: 'hot /h?t/', name: '短元音 /?/', mouthShape: '嘴张圆，舌后部抬起，发音短促', tip: '嘴唇收圆但不要噘起，类似短促的"哦"', category: '短元音' },
+    { symbol: '??', example: 'door /d??/', name: '长元音 /??/', mouthShape: '双唇收圆前伸，舌后部抬高，发音较长', tip: '嘴唇用力收圆，比/?/嘴唇更紧张', category: '长元音' },
+    { symbol: '?', example: 'book /b?k/', name: '短元音 /?/', mouthShape: '双唇微圆前伸，舌后部微抬，短促发音', tip: '比/u?/嘴型更松，舌位更低', category: '短元音' },
+    { symbol: 'u?', example: 'too /tu?/', name: '长元音 /u?/', mouthShape: '双唇收得很圆前伸，舌后部高抬，发音较长', tip: '类似中文"乌"但嘴唇更用力前伸', category: '长元音' },
+    { symbol: '?', example: 'cup /k?p/', name: '短元音 /?/', mouthShape: '嘴自然张开，舌中部微抬，发音放松短促', tip: '类似中文短促的"啊"但舌位更居中', category: '短元音' },
+    { symbol: '??', example: 'bird /b??d/', name: '长元音 /??/', mouthShape: '嘴自然微开，舌中部抬高，发音较长', tip: '类似说"饿"但嘴唇不圆不扁，自然放松', category: '长元音' },
+    { symbol: '?', example: 'about /??ba?t/', name: '中元音 /?/', mouthShape: '嘴自然微开，舌中部放松，发音极短', tip: '最放松的元音，非重读音节中的"呃"', category: '中元音' }
+  ],
+  consonants: [
+    { symbol: 'p', example: 'pen /pen/', name: '清辅音 /p/', mouthShape: '双唇闭合，然后突然打开，气流冲出，声带不振动', tip: '类似中文"p"但声带不振动，更干脆', category: '爆破音' },
+    { symbol: 'b', example: 'big /b?g/', name: '浊辅音 /b/', mouthShape: '双唇闭合，然后突然打开，气流冲出，声带振动', tip: '和/p/口型相同但声带要振动', category: '爆破音' },
+    { symbol: 't', example: 'tea /ti?/', name: '清辅音 /t/', mouthShape: '舌尖抵上齿龈，然后突然离开，气流冲出，声带不振动', tip: '舌尖抵住上齿龈，中文"t"要送气更多', category: '爆破音' },
+    { symbol: 'd', example: 'dog /d?g/', name: '浊辅音 /d/', mouthShape: '舌尖抵上齿龈，然后突然离开，气流冲出，声带振动', tip: '和/t/口型相同但声带振动', category: '爆破音' },
+    { symbol: 'k', example: 'cat /k?t/', name: '清辅音 /k/', mouthShape: '舌后部抬起抵住软腭，突然离开，声带不振动', tip: '类似中文"k"但不送气太强', category: '爆破音' },
+    { symbol: 'g', example: 'go /g??/', name: '浊辅音 /g/', mouthShape: '舌后部抬起抵住软腭，突然离开，声带振动', tip: '和/k/口型相同但声带振动', category: '爆破音' },
+    { symbol: 'f', example: 'fish /f??/', name: '清辅音 /f/', mouthShape: '上齿轻咬下唇，气流从缝隙中挤出，声带不振动', tip: '上齿必须咬住下唇，不同于中文f', category: '摩擦音' },
+    { symbol: 'v', example: 'very /?veri/', name: '浊辅音 /v/', mouthShape: '上齿轻咬下唇，气流从缝隙中挤出，声带振动', tip: '和/f/口型相同但声带振动', category: '摩擦音' },
+    { symbol: 'θ', example: 'think /θ??k/', name: '清辅音 /θ/', mouthShape: '舌尖放在上下齿之间，气流挤出，声带不振动', tip: '舌尖轻触上齿，让气流从舌尖和上齿间通过', category: '摩擦音' },
+    { symbol: 'e', example: 'this /e?s/', name: '浊辅音 /e/', mouthShape: '舌尖放在上下齿之间，气流挤出，声带振动', tip: '和/θ/口型相同但声带振动', category: '摩擦音' },
+    { symbol: '?', example: 'she /?i?/', name: '清辅音 /?/', mouthShape: '双唇微圆前伸，舌前端接近硬腭，声带不振动', tip: '类似中文"sh"但嘴唇更圆更前伸', category: '摩擦音' },
+    { symbol: '?', example: 'vision /?v???n/', name: '浊辅音 /?/', mouthShape: '双唇微圆前伸，舌前端接近硬腭，声带振动', tip: '和/?/口型相同但声带振动', category: '摩擦音' }
+  ]
+};
+const examData = {
+  cet4: { name: '大学英语四级（CET-4）', sections: [
+    { name: '写作', duration: 30, type: 'writing', description: '30分钟，120-180词短文写作' },
+    { name: '听力理解', duration: 25, type: 'listening', description: '新闻、长对话、听力篇章' },
+    { name: '阅读理解', duration: 40, type: 'reading', description: '词汇理解、长篇阅读、仔细阅读' },
+    { name: '翻译', duration: 30, type: 'translation', description: '汉译英段落翻译' }
+  ], totalTime: 125, fullScore: 710, passScore: 425 },
+  cet6: { name: '大学英语六级（CET-6）', sections: [
+    { name: '写作', duration: 30, type: 'writing', description: '30分钟，150-200词短文写作' },
+    { name: '听力理解', duration: 30, type: 'listening', description: '长对话、听力篇章、讲座' },
+    { name: '阅读理解', duration: 40, type: 'reading', description: '词汇理解、长篇阅读、仔细阅读' },
+    { name: '翻译', duration: 30, type: 'translation', description: '汉译英段落翻译' }
+  ], totalTime: 130, fullScore: 710, passScore: 425 },
+  ielts: { name: '雅思（IELTS）', sections: [
+    { name: '听力', duration: 30, type: 'listening', description: '4个部分，40道题' },
+    { name: '阅读', duration: 60, type: 'reading', description: '3篇文章，40道题' },
+    { name: '写作', duration: 60, type: 'writing', description: 'Task 1图表+Task 2议论文' },
+    { name: '口语', duration: 14, type: 'speaking', description: 'Part 1-3 面对面口语测试' }
+  ], totalTime: 164, fullScore: 9, passScore: 6 }
+};
+
+const mockTests = [
+  { id: 1, examType: 'cet4', title: '四级全真模拟卷一', desc: '最新真题风格，覆盖写作、听力、阅读、翻译', questions: 57, duration: 125 },
+  { id: 2, examType: 'cet4', title: '四级全真模拟卷二', desc: '2024年6月真题改编，精准还原考试难度', questions: 57, duration: 125 },
+  { id: 3, examType: 'cet6', title: '六级全真模拟卷一', desc: '贴近真题难度，适合考前冲刺练习', questions: 57, duration: 130 }
+];
+
+const growthStages = [
+  { id: 'phonetics', name: '音标通关', desc: '48个国际音标全部掌握', icon: '\u{1F530}', target: 48, unit: '个音标' },
+  { id: 'basicVocab', name: '基础词汇', desc: '初中+高中核心词汇通关', icon: '\u{1F530}', target: 5000, unit: '个单词' },
+  { id: 'cet4', name: '四级通关', desc: '四级核心词汇+真题模拟', icon: '\u{1F530}', target: 2500, unit: '个四级词' },
+  { id: 'cet6', name: '六级进阶', desc: '六级核心词汇掌握', icon: '\u{1F530}', target: 1800, unit: '个六级词' },
+  { id: 'ielts', name: '雅思冲刺', desc: '雅思真题+口语进阶', icon: '\u{1F530}', target: 3000, unit: '个雅思词' }
+];
+
+const sentences = [
+  { en: 'The quick brown fox jumps over the lazy dog.', cn: '那只敏捷的棕色狐狸跳过了那只懒狗。', phonetic: '/e? kw?k bra?n f?ks d??mps ???v? e? ?le?zi d?g/' },
+  { en: 'I would like to make a reservation for two.', cn: '我想预订两个人的座位。', phonetic: '/a? w?d la?k t? me?k ? ?rez??ve???n f?? tu?/' },
+  { en: 'Could you please tell me the way to the station?', cn: '请问去车站怎么走？', phonetic: '/k?d ju? pli?z tel mi? e? we? t? e? ?ste???n/' },
+  { en: 'Learning English requires consistent practice.', cn: '学英语需要持续练习。', phonetic: '/?l??n?? ???ɡl?? r??kwa??z k?n?s?st?nt ?pr?kt?s/' }
+];
+
+const scenes = [
+  { name: '日常问候', icon: '\u{1F530}', desc: '常用打招呼、自我介绍', count: 20 },
+  { name: '购物场景', icon: '\u{1F530}', desc: '商场购物、讨价还价', count: 15 },
+  { name: '餐厅点餐', icon: '\u{1F530}', desc: '预约、点餐、结账', count: 18 },
+  { name: '旅行出行', icon: '\u{1F530}', desc: '机场、酒店、问路', count: 25 },
+  { name: '四六级口语', icon: '\u{1F530}', desc: 'CET口语真题演练', count: 30 },
+  { name: '雅思口语', icon: '\u{1F530}', desc: 'Part 1-3模拟', count: 40 }
+];
+
+const dailyPlanTasks = [
+  { id: 1, name: '音标特训 - 练习5组元音', type: 'phonetics', target: 5 },
+  { id: 2, name: '背词 - 学习10个新词', type: 'vocabulary', target: 10 },
+  { id: 3, name: '复习 - 根据遗忘曲线复习', type: 'review', target: 15 },
+  { id: 4, name: '口语练习 - 跟读3句', type: 'speaking', target: 3 },
+  { id: 5, name: '模拟测试 - 完成一组真题', type: 'exam', target: 1 }
+];
+// ============ STORAGE ============
+// ============ 多用户数据隔离 + 密码 ============
+
+// ============ Supabase 配置 ============
+// ============ Supabase REST API 封装 ============
+var SUPABASE_URL = 'https://ohqllarwxwhavchdvyqy.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_7grRu4QOtBTnBLwt5rJixw_BluOyCgn';
+
+function supabaseGet(path) {
+  return fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+  }).then(function(r) { return r.json(); });
+}
+
+function supabasePost(path, body) {
+  return fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify(body)
+  });
+}
+
+function supabasePatch(path, body) {
+  return fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    method: 'PATCH',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify(body)
+  });
+}
+
+
+
+// ============ Supabase 用户认证 ============
+let currentUser = null;
+
+function getCurrentUser() {
+  return currentUser ? currentUser.name : '';
+}
+
+function setCurrentUser(name) {
+  // 不再用 localStorage
+}
+
+async function getAllUsers() {
+  // 从 Supabase 读取所有用户名
+  const data = await supabaseGet('users?select=name');
+  if (!data) { return {}; }
+  const users = {};
+  data.forEach(function(u) { users[u.name] = true; });
+  return users;
+}
+
+async function registerUser(name, password) {
+  var existing = await supabaseGet('users?select=name&name=eq.' + encodeURIComponent(name));
+  if (!existing || existing.length > 0) return false;
+  await supabasePost('users', { name: name, password: password, data: JSON.stringify(getDefaultStore()) });
+  return true;
+}
+
+async function verifyPassword(name, password) {
+  var data = await supabaseGet('users?select=password&name=eq.' + encodeURIComponent(name) + '&limit=1');
+  if (!data || data.length === 0) return false;
+  return data[0].password === password;
+}
+
+async function userExists(name) {
+  var data = await supabaseGet('users?select=name&name=eq.' + encodeURIComponent(name));
+  return data && data.length > 0;
+}
+
+async function loadStore() {
+  var user = getCurrentUser();
+  if (!user) return {};
+  var data = await supabaseGet('users?select=data&name=eq.' + encodeURIComponent(user) + '&limit=1');
+  if (!data || data.length === 0) { return {}; }
+  try { return JSON.parse(data[0].data || '{}'); } catch(e) { return {}; }
+}
+
+async function saveStore(store) {
+  var user = getCurrentUser();
+  if (!user) return;
+  await supabasePatch('users?name=eq.' + encodeURIComponent(user), { data: JSON.stringify(store) });
+}
+
+function getDefaultStore() {
+  return {
+    wordbook: [], phoneticsCompleted: [], voiceStats: { totalRecordings: 0, avgScore: 0, bestScore: 0 },
+    testHistory: [], dailyPlanDone: {}, stageProgress: { phonetics: 0, basicVocab: 0, cet4: 0, cet6: 0, ielts: 0 },
+    badges: []
+  };
+}
+
+let store = getDefaultStore();
+
+// ============ NAVIGATION ============
+let currentTab = 'index';
+let currentPage = 'index';
+
+function navToTab(tab) {
+  currentTab = tab;
+  currentPage = tab;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  const page = document.getElementById('page-' + tab);
+  if (page) page.classList.add('active');
+  const tabEl = document.querySelector('.tab-item[data-tab="' + tab + '"]');
+  if (tabEl) tabEl.classList.add('active');
+  if (tab === 'index') renderIndex();
+  if (tab === 'vocabulary') renderVocabulary();
+  if (tab === 'exam') renderExam();
+  if (tab === 'speaking') renderSpeaking();
+  if (tab === 'profile') renderProfile();
+  window.scrollTo(0, 0);
+}
+
+function navToPage(page) { if (['basicVocab','cet4','cet6'].includes(page)) { navToTab('vocabulary'); return; } if (page === 'ielts') { navToTab('exam'); return; }
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  if (page === 'wordbook') renderWordbook();
+  if (page === 'growth-map') renderGrowthMap();
+  if (page === 'daily-plan') renderDailyPlan();
+  if (page === 'phonetics') renderPhonetics();
+  if (page === 'phonetics-practice') startPhoneticsPractice();
+  window.scrollTo(0, 0);
+}
+
+document.querySelectorAll('.tab-item').forEach(item => {
+  item.addEventListener('click', () => navToTab(item.dataset.tab));
+});
+var dinoAvatars = ['\u{1F995}','\u{1F996}','\u{1F997}','\u{1F998}','\u{1F999}','\u{1F99A}','\u{1F99B}','\u{1F99C}','\u{1F99D}'];
+
+function showAvatarPicker() {
+  if (!getCurrentUser()) return;
+  document.getElementById('avatar-grid').innerHTML = dinoAvatars.map(function(a,i) {
+    var sel = store.avatar === a ? ' selected' : '';
+    return '<div class="avatar-option'+sel+'" onclick="selectAvatar(\''+a+'\')">'+a+'</div>';
+  }).join('');
+  document.getElementById('avatar-picker').style.display = 'flex';
+}
+
+function selectAvatar(a) {
+  store.avatar = a;
+  persist();
+  document.getElementById('avatar-display').textContent = a;
+  document.getElementById('avatar-picker').style.display = 'none';
+  document.getElementById('profile-name').textContent = getCurrentUser();
+}
+
+function updateAvatarDisplay() {
+  var a = store.avatar || '\u{1F996}';
+  var el = document.getElementById('avatar-display');
+  if (el) el.textContent = a;
+}
+async function persist() { await saveStore(store); }
+
+// ============ RENDER FUNCTIONS ============
+
+// ============ RENDER: INDEX ============
+function renderIndex() {
+  const todayStats = {
+    wordsLearned: Math.floor(Math.random() * 30) + 5,
+    reviewed: Math.floor(Math.random() * 40) + 10,
+    minutes: Math.floor(Math.random() * 45) + 15,
+    score: Math.floor(Math.random() * 50) + 30
+  };
+  document.getElementById('today-stats').innerHTML = '<div class="stat-item"><div class="stat-num">'+todayStats.wordsLearned+'</div><div class="stat-label">新词</div></div><div class="stat-item"><div class="stat-num">'+todayStats.reviewed+'</div><div class="stat-label">复习</div></div><div class="stat-item"><div class="stat-num">'+todayStats.minutes+'min</div><div class="stat-label">学习时长</div></div><div class="stat-item"><div class="stat-num">'+todayStats.score+'</div><div class="stat-label">今日得分</div></div>';
+  
+  const stages = [
+    { id: 'phonetics', name: '阶段一：零基础音标特训', desc: '48个音标精学+AI纠音', icon: '\u{1F530}', color: '#34C759' },
+    { id: 'basicVocab', name: '阶段二：通用基础词汇', desc: '中考+高考+大学基础词', icon: '\u{1F4DA}', color: '#007AFF' },
+    { id: 'cet4', name: '阶段三：四六级专项备考', desc: '真题模拟+题型特训', icon: '\u{1F4DD}', color: '#FF9500' },
+    { id: 'ielts', name: '阶段四：雅思全科备考', desc: '听说读写+机考模拟', icon: '\u{1F3AF}', color: '#AF52DE' }
+  ];
+  document.getElementById('stages-container').innerHTML = stages.map(function(s) {
+    var p = store.stageProgress[s.id] || 0;
+    return '<div class="stage-card" style="border-left-color:'+s.color+'" onclick="navToPage(\''+s.id+'\')"><div class="stage-icon">'+s.icon+'</div><div class="stage-name">'+s.name+'</div><div class="stage-desc">'+s.desc+'</div><div class="progress-bg mt-10"><div class="progress-fill" style="width:'+p+'%;background:'+s.color+'"></div></div></div>';
+  }).join('');
+  document.getElementById('streak-days').textContent = store.dailyPlanDone ? Object.keys(store.dailyPlanDone).length : 0;
+}
+
+// ============ RENDER: VOCABULARY ============
+function renderVocabulary() {
+  document.getElementById('review-desc').textContent = '待复习: ' + (store.wordbook||[]).length + ' 个单词';
+  var counts = {}; wordStudyList.forEach(function(w) { counts[w.stage] = (counts[w.stage] || 0) + 1; });
+  var lists = [
+    { id: 'basicVocab', name: '基础词汇', count: counts['basicVocab'] || 0, icon: '\u{1F4D7}' },
+    { id: 'cet4', name: '四级词汇', count: counts['cet4'] || 0, icon: '\u{1F4D8}' },
+    { id: 'cet6', name: '六级词汇', count: counts['cet6'] || 0, icon: '\u{1F4D9}' },
+    { id: 'ielts', name: '雅思词汇', count: counts['ielts'] || 0, icon: '\u{1F4D5}' }
+  ];
+  document.getElementById('word-lists-container').innerHTML = lists.map(function(l) {
+    return '<div class="word-list-card" onclick="openWordList(\''+l.id+'\')"><div>'+l.icon+' '+l.name+'</div><div class="card-desc">'+l.count+' 词</div></div>';
+  }).join('');
+  document.getElementById('stat-learned').textContent = store.stageProgress ? (store.stageProgress.basicVocab||0) + (store.stageProgress.cet4||0) : 0;
+  document.getElementById('stat-mastered').textContent = store.stageProgress ? Math.floor(((store.stageProgress.basicVocab||0)+(store.stageProgress.cet4||0))/2) : 0;
+  document.getElementById('stat-reviewing').textContent = store.wordbook ? store.wordbook.length : 0;
+}
+
+// ============ RENDER: EXAM ============
+function renderExam() {
+  document.getElementById('exam-info-card').innerHTML = '<div class="card-title">模拟考试</div><div class="card-desc">四六级真题模拟，计时答题</div>';
+  var sections = [
+    { name: '听力理解', icon: '\u{1F3A7}', desc: '短对话+长对话+短文' },
+    { name: '阅读理解', icon: '\u{1F4D6}', desc: '选词填空+段落匹配+仔细阅读' },
+    { name: '写作翻译', icon: '\u{270F}\u{FE0F}', desc: '作文+汉译英' }
+  ];
+  document.getElementById('exam-sections').innerHTML = sections.map(function(s) {
+    return '<div class="exam-section-card"><div class="exam-section-icon">'+s.icon+'</div><div class="exam-section-name">'+s.name+'</div><div class="card-desc">'+s.desc+'</div></div>';
+  }).join('');
+  document.getElementById('mock-tests').innerHTML = '<div class="mock-test-card" onclick="startMockTest()"><div>\u{1F4CB}</div><div>四级模拟卷一</div><div class="card-desc">30题 25分钟</div></div><div class="mock-test-card" onclick="startMockTest()"><div>\u{1F4CB}</div><div>四级模拟卷二</div><div class="card-desc">30题 25分钟</div></div>';
+}
+
+// ============ RENDER: SPEAKING ============
+function renderSpeaking() {
+  document.getElementById('voice-total').textContent = store.voiceStats ? store.voiceStats.totalRecordings : 0;
+  document.getElementById('voice-avg').textContent = store.voiceStats ? store.voiceStats.avgScore : 0;
+  document.getElementById('voice-best').textContent = store.voiceStats ? store.voiceStats.bestScore : 0;
+  document.getElementById('sentence-en').textContent = 'Hello, how are you today?';
+  document.getElementById('sentence-cn').textContent = '你好，今天过得怎么样？';
+  document.getElementById('scene-grid').innerHTML = ['问候','购物','餐厅','旅行','工作','学习'].map(function(t) {
+    return '<div class="scene-card" onclick="changeScene(\''+t+'\')">'+t+'</div>';
+  }).join('');
+}
+
+// ============ RENDER: PROFILE ============
+function renderProfile() {
+  document.getElementById('profile-name').textContent = getCurrentUser() || '点击登录';
+  document.getElementById('prof-wordbook').textContent = store.wordbook ? store.wordbook.length : 0;
+  document.getElementById('prof-phonetics').textContent = store.phoneticsCompleted ? store.phoneticsCompleted.length : 0;
+  document.getElementById('prof-tests').textContent = store.testHistory ? store.testHistory.length : 0;
+  document.getElementById('prof-streak').textContent = store.dailyPlanDone ? Object.keys(store.dailyPlanDone).length : 0;
+  document.getElementById('badge-grid').innerHTML = (store.badges||[]).map(function(b) {
+    return '<div class="badge">\u{1F3C5} '+b+'</div>';
+  }).join('') || '<div class="card-desc">暂无成就</div>';
+}
+
+// ============ RENDER: PHONETICS ============
+function renderPhonetics() {
+  var completed = store.phoneticsCompleted || [];
+  document.getElementById('phonetics-progress').style.width = (completed.length/48*100)+'%';
+  document.getElementById('phonetics-progress-text').textContent = completed.length+'/48';
+  var vowels = [
+    {s:'i:',n:'长元音/i:/',e:'see'},{s:'\u026A',n:'短元音/\u026A/',e:'sit'},
+    {s:'e',n:'短元音/e/',e:'bed'},{s:'\u00E6',n:'短元音/\u00E6/',e:'cat'},
+    {s:'\u0251:',n:'长元音/\u0251:/',e:'car'},{s:'\u0252',n:'短元音/\u0252/',e:'hot'},
+    {s:'\u0254:',n:'长元音/\u0254:/',e:'law'},{s:'\u028A',n:'短元音/\u028A/',e:'book'},
+    {s:'u:',n:'长元音/u:/',e:'too'},{s:'\u028C',n:'短元音/\u028C/',e:'cup'},
+    {s:'\u025C:',n:'长元音/\u025C:/',e:'bird'},{s:'\u0259',n:'短元音/\u0259/',e:'about'}
+  ];
+  var cons = [
+    {s:'p',n:'清辅音/p/',e:'pen'},{s:'b',n:'浊辅音/b/',e:'bed'},
+    {s:'t',n:'清辅音/t/',e:'top'},{s:'d',n:'浊辅音/d/',e:'dog'},
+    {s:'k',n:'清辅音/k/',e:'cat'},{s:'g',n:'浊辅音/g/',e:'go'},
+    {s:'f',n:'清辅音/f/',e:'fan'},{s:'v',n:'浊辅音/v/',e:'van'},
+    {s:'\u03B8',n:'清辅音/\u03B8/',e:'think'},{s:'\u00F0',n:'浊辅音/\u00F0/',e:'this'},
+    {s:'s',n:'清辅音/s/',e:'see'},{s:'z',n:'浊辅音/z/',e:'zoo'},
+    {s:'\u0283',n:'清辅音/\u0283/',e:'she'},{s:'\u0292',n:'浊辅音/\u0292/',e:'vision'},
+    {s:'h',n:'清辅音/h/',e:'hat'},{s:'t\u0283',n:'清辅音/t\u0283/',e:'chat'},
+    {s:'d\u0292',n:'浊辅音/d\u0292/',e:'job'},{s:'m',n:'鼻辅音/m/',e:'man'},
+    {s:'n',n:'鼻辅音/n/',e:'no'},{s:'\u014B',n:'鼻辅音/\u014B/',e:'sing'},
+    {s:'l',n:'边辅音/l/',e:'leg'},{s:'r',n:'卷舌音/r/',e:'red'},
+    {s:'j',n:'半元音/j/',e:'yes'},{s:'w',n:'半元音/w/',e:'we'}
+  ];
+  var allPhon = vowels.concat(cons);
+  document.getElementById('phonetic-grid').innerHTML = allPhon.map(function(p) {
+    var done = completed.includes(p.s);
+    return '<div class="phonetic-card'+(done?' done':'')+'" onclick="openPhoneticDetail(\''+p.s+'\',\''+p.n+'\',\''+p.e+'\')"><div class="phonetic-symbol">'+p.s+'</div><div class="card-desc">'+p.n+'</div></div>';
+  }).join('');
+}
+
+function openPhoneticDetail(s, n, ex) {
+  document.getElementById('detail-symbol').textContent = s;
+  document.getElementById('detail-name').textContent = n;
+  document.getElementById('detail-example').textContent = '例：' + ex;
+  var tips = { 'i:': { mouth: '嘴唇向两边拉开，舌尖抵下齿，舌前部抬高', tip: '类似中文"衣"的发音，但要拉长，嘴唇呈扁平状', cat: '前元音' }, '\u026A': { mouth: '嘴唇微微张开，舌尖抵下齿，舌前部稍抬高', tip: '比/i:/发音更短更放松，类似"一"但短促', cat: '前元音' }, 'e': { mouth: '嘴唇向两边拉开，舌尖抵下齿，舌位比/i/低', tip: '口腔张得比/i/大，短促有力', cat: '前元音' }, '\u00E6': { mouth: '嘴唇向两边拉开，口腔张大，舌尖抵下齿', tip: '口腔张到最大，类似"哎"但嘴角拉得更开', cat: '前元音' } };
+  var t = tips[s] || { mouth: '嘴唇自然放松，舌头位置参考标准发音图示', tip: '多听多练，注意模仿母语者的发音方式', cat: '基础音标' };
+  document.getElementById('detail-mouth').textContent = t.mouth;
+  document.getElementById('detail-tip').textContent = t.tip;
+  document.getElementById('detail-cat').textContent = t.cat;
+  navToPage('phonetics-detail');
+}
+
+function stopSpeaking() {
+  window.speechSynthesis.cancel();
+}
+
+function startPhoneticsPractice() {
+  navToPage('phonetics-practice');
+}
+
+// ============ RENDER: WORD LIST ============
+function openWordList(listId) {
+  navToPage('word-list');
+  renderWordList(listId);
+}
+
+function renderWordList(listId) {
+  listId = listId || currentListId || 'basicVocab';
+  currentListId = listId;
+  var listNames = { basicVocab: '基础词汇', cet4: '四级词汇', cet6: '六级词汇', ielts: '雅思词汇' };
+  document.getElementById('wordlist-name').textContent = listNames[listId] || listId;
+  var words = wordStudyList.filter(function(w) { return w.stage === listId; });
+  var lastIdx = store.lastWordIndex || 0;
+  var html = '';
+  // Last position card
+  if (lastIdx > 0 && lastIdx < words.length) {
+    html += '<div class="card" onclick="jumpToLastWord()" style="margin-bottom:16px;background:linear-gradient(135deg,#E8F5E9,#C8E6C9);border:2px solid #4CAF50;cursor:pointer"><div style="font-size:12px;color:#2E7D32;margin-bottom:4px">📍 上次学到</div><div style="font-size:18px;font-weight:700;color:#1A1A2E">' + words[lastIdx].en + '</div><div style="font-size:13px;color:#666">' + words[lastIdx].cn + ' (' + (lastIdx+1) + '/' + words.length + ')</div></div>';
+  }
+  // Word list
+  html += words.map(function(w,i) {
+    return '<div class="word-list-item" onclick="openWordStudy('+i+',wordStudyList['+i+'].en,wordStudyList['+i+'].phon,wordStudyList['+i+'].cn)"><div class="word-en">'+w.en+'</div><div class="word-phon">'+w.phon+'</div><div class="word-cn">'+w.cn+'</div></div>';
+  }).join('');
+  document.getElementById('word-list-items').innerHTML = html;
+}
+
+function jumpToLastWord() {
+  var idx = store.lastWordIndex || 0;
+  var w = wordStudyList[idx];
+  openWordStudy(idx, w.en, w.phon, w.cn);
+}
+
+function openWordStudy(idx, en, phon, cn) {
+  store.lastWordIndex = idx;
+  persist();
+  navToPage('word-study');
+  document.getElementById('ws-word').textContent = en;
+  document.getElementById('ws-phonetic').textContent = phon;
+  document.getElementById('ws-meaning').textContent = cn;
+  document.getElementById('ws-index').textContent = (idx+1)+'/'+wordStudyList.filter(function(w){return w.stage===currentListId}).length;
+  loadSentences(en);
+}
+
+// ============ RENDER: WORDBOOK ============
+function renderWordbook() {
+  document.getElementById('wordbook-count').textContent = (store.wordbook||[]).length;
+  document.getElementById('wordbook-items').innerHTML = (store.wordbook||[]).map(function(w,i) {
+    return '<div class="wordbook-item"><span>'+w.en+' - '+w.cn+'</span><span class="btn-secondary" onclick="removeFromWordbook('+i+')">删除</span></div>';
+  }).join('') || '<div class="card-desc">暂无单词</div>';
+}
+
+function removeFromWordbook(i) {
+  store.wordbook.splice(i,1);
+  persist();
+  renderWordbook();
+}
+
+// ============ RENDER: GROWTH MAP ============
+function renderGrowthMap() {
+  var phonDone = (store.phoneticsCompleted||[]).length;
+  var masteredCount = (store.masteredWords||[]).length;
+  var totalWords = wordStudyList ? wordStudyList.length : 50;
+  var today = new Date().toISOString().split('T')[0];
+  var todayDate = new Date();
+  var dayOfWeek = todayDate.getDay();
+  var mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  var monday = new Date(todayDate);
+  monday.setDate(todayDate.getDate() + mondayOffset);
+  var lastMonday = new Date(monday);
+  lastMonday.setDate(monday.getDate() - 7);
+  var thisWeekDays = 0;
+  var lastWeekDays = 0;
+  if (store.dailyPlanDone) {
+    var d = new Date(monday);
+    for (var i = 0; i < 7; i++) {
+      var ds = d.toISOString().split('T')[0];
+      if (store.dailyPlanDone[ds] && store.dailyPlanDone[ds].length > 0) thisWeekDays++;
+      d.setDate(d.getDate() + 1);
+    }
+    d = new Date(lastMonday);
+    for (var i = 0; i < 7; i++) {
+      var ds = d.toISOString().split('T')[0];
+      if (store.dailyPlanDone[ds] && store.dailyPlanDone[ds].length > 0) lastWeekDays++;
+      d.setDate(d.getDate() + 1);
+    }
+  }
+  var testCount = (store.testHistory||[]).length;
+  var nodes = [
+    { name: '音标入门', done: phonDone, total: 48, icon: '\u{1F3A4}', extra: '' },
+    { name: '基础词汇', done: masteredCount, total: totalWords, icon: '\u{1F4DA}', extra: '' },
+    { name: '四级突破', done: Math.floor(masteredCount/2), total: Math.floor(totalWords/2), icon: '\u{1F393}', extra: '' },
+    { name: '日常打卡', done: thisWeekDays, total: 7, icon: '\u{1F4C5}', extra: '上周' + lastWeekDays + '天' },
+    { name: '模拟考试', done: testCount, total: 5, icon: '\u{1F4DD}', extra: '' }
+  ];
+  document.getElementById('growth-nodes').innerHTML = nodes.map(function(n) {
+    var pct = n.total > 0 ? Math.round(n.done/n.total*100) : 0;
+    var doneClass = n.done >= n.total ? ' done' : '';
+    var extraText = n.extra ? ' ' + n.extra : '';
+    return '<div class="growth-node' + doneClass + '"><div class="growth-icon">' + n.icon + '</div><div class="growth-name">' + n.name + '</div><div class="growth-stat">' + n.done + '/' + n.total + extraText + '</div><div class="progress-bg mt-5"><div class="progress-fill" style="width:' + pct + '%"></div></div></div>';
+  }).join('');
+}// ============ RENDER: DAILY PLAN ============
+function renderDailyPlan() {
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById('plan-date').textContent = today;
+  var tasks = [
+    { id: 'review10', name: '复习10个单词', pts: 10 },
+    { id: 'new5', name: '学习5个新单词', pts: 15 },
+    { id: 'speak3', name: '朗读3个句子', pts: 10 },
+    { id: 'phonetics5', name: '练习5个音标', pts: 10 }
+  ];
+  if (!store.dailyPlanDone) store.dailyPlanDone = {};
+  document.getElementById('plan-tasks').innerHTML = tasks.map(function(t) {
+    var done = store.dailyPlanDone[today] && store.dailyPlanDone[today].indexOf(t.id) >= 0;
+    var icon = done ? '\u2705 ' : '';
+    return '<div class="plan-task'+(done?' done':'')+'" onclick="togglePlanTask(\''+today+'\',\''+t.id+'\')">'+icon+t.name+' <span>+'+t.pts+'分</span></div>';
+  }).join('');
+  var doneToday = (store.dailyPlanDone[today]||[]).length;
+  document.getElementById('plan-summary').textContent = '已完成 '+doneToday+'/4 项任务';
+}
+
+function togglePlanTask(date, id) {
+  if (!store.dailyPlanDone[date]) store.dailyPlanDone[date] = [];
+  var idx = store.dailyPlanDone[date].indexOf(id);
+  if (idx >= 0) store.dailyPlanDone[date].splice(idx, 1);
+  else store.dailyPlanDone[date].push(id);
+  persist();
+  renderDailyPlan();
+}
+
+// ============ MOCK TEST ============
+var testTimer = null;
+var testTimeLeft = 0;
+var mockQuestions = [];
+var currentQIdx = 0;
+
+function startMockTest() {
+  navToPage('mock-test');
+  mockQuestions = [
+    { q:'The company has ___ a new marketing strategy.', opts:['adopted','adapted','adored','admitted'], ans:0 },
+    { q:'She is ___ to win the competition.', opts:['likely','like','liking','liked'], ans:0 },
+    { q:'The meeting was ___ until next week.', opts:['put off','put on','put up','put away'], ans:0 },
+    { q:'He has been working here ___ 2018.', opts:['for','since','in','from'], ans:1 },
+    { q:'Neither the teacher nor the students ___ satisfied.', opts:['was','were','is','are being'], ans:1 }
+  ];
+  currentQIdx = 0;
+  testTimeLeft = 300;
+  document.getElementById('test-title').textContent = '四级模拟卷';
+  renderMockQuestion();
+  if (testTimer) clearInterval(testTimer);
+  testTimer = setInterval(function() {
+    testTimeLeft--;
+    var m = Math.floor(testTimeLeft/60);
+    var s = testTimeLeft%60;
+    document.getElementById('test-timer').textContent = m+':'+(s<10?'0':'')+s;
+    if (testTimeLeft <= 0) { clearInterval(testTimer); finishMockTest(); }
+  }, 1000);
+}
+
+function renderMockQuestion() {
+  document.getElementById('test-progress').textContent = (currentQIdx+1)+'/'+mockQuestions.length;
+  var q = mockQuestions[currentQIdx];
+  if (q._answered === undefined) q._answered = false;
+  var navs = '';
+  for (var i = 0; i < mockQuestions.length; i++) {
+    var cls = '';
+    if (mockQuestions[i]._answered) cls = ' done';
+    if (i === currentQIdx) cls += ' current';
+    navs += '<div class="q-nav'+cls+'" onclick="jumpToMockQ('+i+')">'+(i+1)+'</div>';
+  }
+  document.getElementById('question-navs').innerHTML = navs;
+  document.getElementById('question-area').innerHTML = '<div class="card-title">'+(currentQIdx+1)+'. '+q.q+'</div>'+q.opts.map(function(o,i){ var c=''; if(q._answered){if(i===q.ans)c=' correct';else if(i===q._selected)c=' wrong';} return '<div class="quiz-option'+c+'" onclick="answerMockQuestion('+i+')">'+String.fromCharCode(65+i)+'. '+o+'</div>'; }).join('');
+}
+
+function jumpToMockQ(i) { currentQIdx = i; renderMockQuestion(); }
+
+function answerMockQuestion(i) {
+  var q = mockQuestions[currentQIdx];
+  if (q._answered) return;
+  q._answered = true;
+  q._selected = i;
+  renderMockQuestion();
+}
+
+function nextMockQuestion() {
+  if (currentQIdx < mockQuestions.length-1) { currentQIdx++; renderMockQuestion(); }
+  else finishMockTest();
+}
+
+function prevMockQuestion() {
+  if (currentQIdx > 0) { currentQIdx--; renderMockQuestion(); }
+}
+
+function finishMockTest() {
+  if (testTimer) clearInterval(testTimer);
+  var correct = mockQuestions.filter(function(q){ return q._selected === q.ans; }).length;
+  var score = correct * 20;
+  navToPage('test-result');
+  document.getElementById('tr-title').textContent = '四级模拟卷';
+  document.getElementById('tr-score').textContent = score;
+  document.getElementById('tr-correct').textContent = correct;
+  document.getElementById('tr-wrong').textContent = mockQuestions.filter(function(q){ return q._answered && q._selected !== q.ans; }).length;
+  document.getElementById('tr-unanswered').textContent = mockQuestions.filter(function(q){ return !q._answered; }).length;
+  store.testHistory = store.testHistory || [];
+  store.testHistory.push({ date: new Date().toISOString().split('T')[0], score: score, correct: correct, total: mockQuestions.length });
+  persist();
+}
+
+// ============ STAGE ACTIONS ============
+function handleStageAction(el) {
+  var id = el.dataset.action;
+  if (id === 'phonetics') navToPage('phonetics');
+  else if (id === 'basicVocab' || id === 'cet4') navToTab('vocabulary');
+  else if (id === 'ielts') navToTab('exam');
+  else navToTab('index');
+}
+
+// ============ UTILS ============
+async function resetAllData() {
+  if (confirm('确定要重置所有学习数据吗？此操作不可恢复。')) {
+  
+    await persist();
+    renderIndex();
+    navToTab('index');
+    alert('数据已重置');
+  }
+}
+
+function fixStageActions() {}
+
+// ============ 复习 ============
+var wordMastered = false;
+var wordStudyList = [
+  { en: 'a', phon: '/eɪ/', cn: 'n. 字母A', stage: 'basicVocab' },
+  { en: 'abandon', phon: '/əˈbændən/', cn: 'v. 放弃', stage: 'basicVocab' },
+  { en: 'ability', phon: '/əˈbɪləti/', cn: 'n. 能力', stage: 'basicVocab' },
+  { en: 'able', phon: '/ˈeɪbl/', cn: 'adj. 能够', stage: 'basicVocab' },
+  { en: 'aboard', phon: '/əˈbɔːrd/', cn: 'adv. 在船上', stage: 'basicVocab' },
+  { en: 'abroad', phon: '/əˈbrɔːd/', cn: 'adv. 在国外', stage: 'basicVocab' },
+  { en: 'absence', phon: '/ˈæbsəns/', cn: 'n. 缺席', stage: 'basicVocab' },
+  { en: 'absolute', phon: '/ˈæbsəluːt/', cn: 'adj. 绝对的', stage: 'basicVocab' },
+  { en: 'absorb', phon: '/əbˈzɔːb/', cn: 'v. 吸收', stage: 'basicVocab' },
+  { en: 'abstract', phon: '/ˈæbstrækt/', cn: 'adj. 抽象的', stage: 'basicVocab' },
+  { en: 'abundant', phon: '/əˈbʌndənt/', cn: 'adj. 丰富的', stage: 'basicVocab' },
+  { en: 'accept', phon: '/əkˈsept/', cn: 'v. 接受', stage: 'basicVocab' },
+  { en: 'access', phon: '/ˈækses/', cn: 'n. 通道；访问', stage: 'basicVocab' },
+  { en: 'accident', phon: '/ˈæksɪdənt/', cn: 'n. 事故', stage: 'basicVocab' },
+  { en: 'accompany', phon: '/əˈkʌmpəni/', cn: 'v. 陪伴', stage: 'basicVocab' },
+  { en: 'account', phon: '/əˈkaʊnt/', cn: 'n. 账户；说明', stage: 'basicVocab' },
+  { en: 'accurate', phon: '/ˈækjərət/', cn: 'adj. 精确的', stage: 'basicVocab' },
+  { en: 'accuse', phon: '/əˈkjuːz/', cn: 'v. 指责', stage: 'basicVocab' },
+  { en: 'achieve', phon: '/əˈtʃiːv/', cn: 'v. 达到', stage: 'basicVocab' },
+  { en: 'acid', phon: '/ˈæsɪd/', cn: 'n. 酸', stage: 'basicVocab' },
+  { en: 'acknowledge', phon: '/əkˈnɒlɪdʒ/', cn: 'v. 承认', stage: 'basicVocab' },
+  { en: 'acquire', phon: '/əˈkwaɪər/', cn: 'v. 获得', stage: 'basicVocab' },
+  { en: 'across', phon: '/əˈkrɒs/', cn: 'prep. 穿过', stage: 'basicVocab' },
+  { en: 'act', phon: '/ækt/', cn: 'v. 行动 n. 行为', stage: 'basicVocab' },
+  { en: 'action', phon: '/ˈækʃn/', cn: 'n. 行动', stage: 'basicVocab' },
+  { en: 'active', phon: '/ˈæktɪv/', cn: 'adj. 积极的', stage: 'basicVocab' },
+  { en: 'activity', phon: '/ækˈtɪvəti/', cn: 'n. 活动', stage: 'basicVocab' },
+  { en: 'actual', phon: '/ˈæktʃuəl/', cn: 'adj. 实际的', stage: 'basicVocab' },
+  { en: 'adapt', phon: '/əˈdæpt/', cn: 'v. 适应', stage: 'basicVocab' },
+  { en: 'add', phon: '/æd/', cn: 'v. 添加', stage: 'basicVocab' },
+  { en: 'addition', phon: '/əˈdɪʃn/', cn: 'n. 增加', stage: 'basicVocab' },
+  { en: 'address', phon: '/əˈdres/', cn: 'n. 地址', stage: 'basicVocab' },
+  { en: 'adequate', phon: '/ˈædɪkwət/', cn: 'adj. 足够的', stage: 'basicVocab' },
+  { en: 'adjust', phon: '/əˈdʒʌst/', cn: 'v. 调整', stage: 'basicVocab' },
+  { en: 'admire', phon: '/ədˈmaɪər/', cn: 'v. 钦佩', stage: 'basicVocab' },
+  { en: 'admit', phon: '/ədˈmɪt/', cn: 'v. 承认', stage: 'basicVocab' },
+  { en: 'adopt', phon: '/əˈdɒpt/', cn: 'v. 采纳', stage: 'basicVocab' },
+  { en: 'adult', phon: '/ˈædʌlt/', cn: 'n. 成年人', stage: 'basicVocab' },
+  { en: 'advance', phon: '/ədˈvɑːns/', cn: 'v./n. 前进', stage: 'basicVocab' },
+  { en: 'advantage', phon: '/ədˈvɑːntɪdʒ/', cn: 'n. 优势', stage: 'basicVocab' },
+  { en: 'adventure', phon: '/ədˈventʃər/', cn: 'n. 冒险', stage: 'basicVocab' },
+  { en: 'advertise', phon: '/ˈædvətaɪz/', cn: 'v. 做广告', stage: 'basicVocab' },
+  { en: 'advice', phon: '/ədˈvaɪs/', cn: 'n. 建议', stage: 'basicVocab' },
+  { en: 'affair', phon: '/əˈfer/', cn: 'n. 事情', stage: 'basicVocab' },
+  { en: 'affect', phon: '/əˈfekt/', cn: 'v. 影响', stage: 'basicVocab' },
+  { en: 'afford', phon: '/əˈfɔːrd/', cn: 'v. 负担得起', stage: 'basicVocab' },
+  { en: 'afraid', phon: '/əˈfreɪd/', cn: 'adj. 害怕的', stage: 'basicVocab' },
+  { en: 'after', phon: '/ˈɑːftər/', cn: 'prep. 在…之后', stage: 'basicVocab' },
+  { en: 'afternoon', phon: '/ˌɑːftərˈnuːn/', cn: 'n. 下午', stage: 'basicVocab' },
+  { en: 'again', phon: '/əˈɡen/', cn: 'adv. 再次', stage: 'basicVocab' },
+  { en: 'against', phon: '/əˈɡenst/', cn: 'prep. 反对', stage: 'basicVocab' },
+  { en: 'age', phon: '/eɪdʒ/', cn: 'n. 年龄', stage: 'basicVocab' },
+  { en: 'ago', phon: '/əˈɡəʊ/', cn: 'adv. 以前', stage: 'basicVocab' },
+  { en: 'agree', phon: '/əˈɡriː/', cn: 'v. 同意', stage: 'basicVocab' },
+  { en: 'ahead', phon: '/əˈhed/', cn: 'adv. 在前面', stage: 'basicVocab' },
+  { en: 'aim', phon: '/eɪm/', cn: 'n. 目标 v. 瞄准', stage: 'basicVocab' },
+  { en: 'air', phon: '/er/', cn: 'n. 空气', stage: 'basicVocab' },
+  { en: 'alarm', phon: '/əˈlɑːrm/', cn: 'n. 警报', stage: 'basicVocab' },
+  { en: 'alive', phon: '/əˈlaɪv/', cn: 'adj. 活着的', stage: 'basicVocab' },
+  { en: 'allow', phon: '/əˈlaʊ/', cn: 'v. 允许', stage: 'basicVocab' },
+  { en: 'almost', phon: '/ˈɔːlməʊst/', cn: 'adv. 几乎', stage: 'basicVocab' },
+  { en: 'alone', phon: '/əˈləʊn/', cn: 'adj. 单独的', stage: 'basicVocab' },
+  { en: 'along', phon: '/əˈlɒŋ/', cn: 'prep. 沿着', stage: 'basicVocab' },
+  { en: 'already', phon: '/ɔːlˈredi/', cn: 'adv. 已经', stage: 'basicVocab' },
+  { en: 'also', phon: '/ˈɔːlsəʊ/', cn: 'adv. 也', stage: 'basicVocab' },
+  { en: 'although', phon: '/ɔːlˈðəʊ/', cn: 'conj. 虽然', stage: 'basicVocab' },
+  { en: 'among', phon: '/əˈmʌŋ/', cn: 'prep. 在…之中', stage: 'basicVocab' },
+  { en: 'amount', phon: '/əˈmaʊnt/', cn: 'n. 数量', stage: 'basicVocab' },
+  { en: 'ancient', phon: '/ˈeɪnʃənt/', cn: 'adj. 古代的', stage: 'basicVocab' },
+  { en: 'anger', phon: '/ˈæŋɡər/', cn: 'n. 愤怒', stage: 'basicVocab' },
+  { en: 'announce', phon: '/əˈnaʊns/', cn: 'v. 宣布', stage: 'basicVocab' },
+  { en: 'annual', phon: '/ˈænjuəl/', cn: 'adj. 年度的', stage: 'basicVocab' },
+  { en: 'anxious', phon: '/ˈæŋkʃəs/', cn: 'adj. 焦虑的', stage: 'basicVocab' },
+  { en: 'apart', phon: '/əˈpɑːrt/', cn: 'adv. 分开', stage: 'basicVocab' },
+  { en: 'apology', phon: '/əˈpɒlədʒi/', cn: 'n. 道歉', stage: 'basicVocab' },
+  { en: 'appear', phon: '/əˈpɪr/', cn: 'v. 出现', stage: 'basicVocab' },
+  { en: 'apply', phon: '/əˈplaɪ/', cn: 'v. 申请', stage: 'basicVocab' },
+  { en: 'appoint', phon: '/əˈpɔɪnt/', cn: 'v. 任命', stage: 'basicVocab' },
+  { en: 'approach', phon: '/əˈprəʊtʃ/', cn: 'v./n. 接近', stage: 'basicVocab' },
+  { en: 'approve', phon: '/əˈpruːv/', cn: 'v. 批准', stage: 'basicVocab' },
+  { en: 'area', phon: '/ˈeriə/', cn: 'n. 区域', stage: 'basicVocab' },
+  { en: 'argue', phon: '/ˈɑːrɡjuː/', cn: 'v. 争论', stage: 'basicVocab' },
+  { en: 'arise', phon: '/əˈraɪz/', cn: 'v. 出现', stage: 'basicVocab' },
+  { en: 'arm', phon: '/ɑːrm/', cn: 'n. 手臂', stage: 'basicVocab' },
+  { en: 'army', phon: '/ˈɑːrmi/', cn: 'n. 军队', stage: 'basicVocab' },
+  { en: 'arrange', phon: '/əˈreɪndʒ/', cn: 'v. 安排', stage: 'basicVocab' },
+  { en: 'arrest', phon: '/əˈrest/', cn: 'v./n. 逮捕', stage: 'basicVocab' },
+  { en: 'arrive', phon: '/əˈraɪv/', cn: 'v. 到达', stage: 'basicVocab' },
+  { en: 'article', phon: '/ˈɑːrtɪkl/', cn: 'n. 文章', stage: 'basicVocab' },
+  { en: 'artist', phon: '/ˈɑːrtɪst/', cn: 'n. 艺术家', stage: 'basicVocab' },
+  { en: 'assist', phon: '/əˈsɪst/', cn: 'v. 帮助', stage: 'basicVocab' },
+  { en: 'assume', phon: '/əˈsjuːm/', cn: 'v. 假定', stage: 'basicVocab' },
+  { en: 'attack', phon: '/əˈtæk/', cn: 'v./n. 攻击', stage: 'basicVocab' },
+  { en: 'attempt', phon: '/əˈtempt/', cn: 'v./n. 尝试', stage: 'basicVocab' },
+  { en: 'attend', phon: '/əˈtend/', cn: 'v. 参加', stage: 'basicVocab' },
+  { en: 'attention', phon: '/əˈtenʃn/', cn: 'n. 注意', stage: 'basicVocab' },
+  { en: 'attitude', phon: '/ˈætɪtjuːd/', cn: 'n. 态度', stage: 'basicVocab' },
+  { en: 'attract', phon: '/əˈtrækt/', cn: 'v. 吸引', stage: 'basicVocab' },
+  { en: 'author', phon: '/ˈɔːθər/', cn: 'n. 作者', stage: 'basicVocab' },
+  { en: 'available', phon: '/əˈveɪləbl/', cn: 'adj. 可用的', stage: 'basicVocab' },
+  { en: 'average', phon: '/ˈævərɪdʒ/', cn: 'adj. 平均的 n. 平均数', stage: 'basicVocab' },
+  { en: 'avoid', phon: '/əˈvɔɪd/', cn: 'v. 避免', stage: 'basicVocab' },
+  { en: 'award', phon: '/əˈwɔːrd/', cn: 'n. 奖品 v. 授予', stage: 'basicVocab' },
+  { en: 'aware', phon: '/əˈwer/', cn: 'adj. 意识到的', stage: 'basicVocab' },
+  { en: 'balance', phon: '/ˈbæləns/', cn: 'n. 平衡', stage: 'basicVocab' },
+  { en: 'bargain', phon: '/ˈbɑːrɡən/', cn: 'n. 交易', stage: 'basicVocab' },
+  { en: 'base', phon: '/beɪs/', cn: 'n. 基础', stage: 'basicVocab' },
+  { en: 'basic', phon: '/ˈbeɪsɪk/', cn: 'adj. 基本的', stage: 'basicVocab' },
+  { en: 'battle', phon: '/ˈbætl/', cn: 'n. 战斗', stage: 'basicVocab' },
+  { en: 'beach', phon: '/biːtʃ/', cn: 'n. 海滩', stage: 'basicVocab' },
+  { en: 'bear', phon: '/ber/', cn: 'v. 忍受 n. 熊', stage: 'basicVocab' },
+  { en: 'beat', phon: '/biːt/', cn: 'v. 打败', stage: 'basicVocab' },
+  { en: 'beauty', phon: '/ˈbjuːti/', cn: 'n. 美丽', stage: 'basicVocab' },
+  { en: 'become', phon: '/bɪˈkʌm/', cn: 'v. 变得', stage: 'basicVocab' },
+  { en: 'beg', phon: '/beɡ/', cn: 'v. 乞求', stage: 'basicVocab' },
+  { en: 'begin', phon: '/bɪˈɡɪn/', cn: 'v. 开始', stage: 'basicVocab' },
+  { en: 'behave', phon: '/bɪˈheɪv/', cn: 'v. 表现', stage: 'basicVocab' },
+  { en: 'behind', phon: '/bɪˈhaɪnd/', cn: 'prep. 在…后面', stage: 'basicVocab' },
+  { en: 'believe', phon: '/bɪˈliːv/', cn: 'v. 相信', stage: 'basicVocab' },
+  { en: 'belong', phon: '/bɪˈlɒŋ/', cn: 'v. 属于', stage: 'basicVocab' },
+  { en: 'benefit', phon: '/ˈbenɪfɪt/', cn: 'n. 好处', stage: 'basicVocab' },
+  { en: 'besides', phon: '/bɪˈsaɪdz/', cn: 'adv. 此外', stage: 'basicVocab' },
+  { en: 'beyond', phon: '/bɪˈjɒnd/', cn: 'prep. 超越', stage: 'basicVocab' },
+  { en: 'bitter', phon: '/ˈbɪtər/', cn: 'adj. 苦的', stage: 'basicVocab' },
+  { en: 'blame', phon: '/bleɪm/', cn: 'v. 责备', stage: 'basicVocab' },
+  { en: 'blanket', phon: '/ˈblæŋkɪt/', cn: 'n. 毯子', stage: 'basicVocab' },
+  { en: 'blind', phon: '/blaɪnd/', cn: 'adj. 瞎的', stage: 'basicVocab' },
+  { en: 'block', phon: '/blɒk/', cn: 'n. 街区', stage: 'basicVocab' },
+  { en: 'board', phon: '/bɔːrd/', cn: 'n. 板；董事会', stage: 'basicVocab' },
+  { en: 'boil', phon: '/bɔɪl/', cn: 'v. 煮沸', stage: 'basicVocab' },
+  { en: 'border', phon: '/ˈbɔːrdər/', cn: 'n. 边界', stage: 'basicVocab' },
+  { en: 'borrow', phon: '/ˈbɒrəʊ/', cn: 'v. 借', stage: 'basicVocab' },
+  { en: 'bother', phon: '/ˈbɒðər/', cn: 'v. 打扰', stage: 'basicVocab' },
+  { en: 'brain', phon: '/breɪn/', cn: 'n. 大脑', stage: 'basicVocab' },
+  { en: 'branch', phon: '/bræntʃ/', cn: 'n. 分支', stage: 'basicVocab' },
+  { en: 'brave', phon: '/breɪv/', cn: 'adj. 勇敢的', stage: 'basicVocab' },
+  { en: 'break', phon: '/breɪk/', cn: 'v. 打破 n. 休息', stage: 'basicVocab' },
+  { en: 'breath', phon: '/breθ/', cn: 'n. 呼吸', stage: 'basicVocab' },
+  { en: 'breathe', phon: '/briːð/', cn: 'v. 呼吸', stage: 'basicVocab' },
+  { en: 'bridge', phon: '/brɪdʒ/', cn: 'n. 桥', stage: 'basicVocab' },
+  { en: 'brief', phon: '/briːf/', cn: 'adj. 简短的', stage: 'basicVocab' },
+  { en: 'bright', phon: '/braɪt/', cn: 'adj. 明亮的', stage: 'basicVocab' },
+  { en: 'brilliant', phon: '/ˈbrɪliənt/', cn: 'adj. 杰出的', stage: 'basicVocab' },
+  { en: 'broad', phon: '/brɔːd/', cn: 'adj. 宽阔的', stage: 'basicVocab' },
+  { en: 'brush', phon: '/brʌʃ/', cn: 'n. 刷子 v. 刷', stage: 'basicVocab' },
+  { en: 'build', phon: '/bɪld/', cn: 'v. 建造', stage: 'basicVocab' },
+  { en: 'burden', phon: '/ˈbɜːrdn/', cn: 'n. 负担', stage: 'basicVocab' },
+  { en: 'burn', phon: '/bɜːrn/', cn: 'v. 燃烧', stage: 'basicVocab' },
+  { en: 'burst', phon: '/bɜːrst/', cn: 'v. 爆发', stage: 'basicVocab' },
+  { en: 'bury', phon: '/ˈberi/', cn: 'v. 埋葬', stage: 'basicVocab' },
+  { en: 'calm', phon: '/kɑːm/', cn: 'adj. 平静的', stage: 'basicVocab' },
+  { en: 'campaign', phon: '/kæmˈpeɪn/', cn: 'n. 运动', stage: 'basicVocab' },
+  { en: 'cancel', phon: '/ˈkænsl/', cn: 'v. 取消', stage: 'basicVocab' },
+  { en: 'capable', phon: '/ˈkeɪpəbl/', cn: 'adj. 有能力的', stage: 'basicVocab' },
+  { en: 'capital', phon: '/ˈkæpɪtl/', cn: 'n. 首都；资本', stage: 'basicVocab' },
+  { en: 'capture', phon: '/ˈkæptʃər/', cn: 'v. 捕获', stage: 'basicVocab' },
+  { en: 'career', phon: '/kəˈrɪr/', cn: 'n. 职业', stage: 'basicVocab' },
+  { en: 'cause', phon: '/kɔːz/', cn: 'n. 原因 v. 导致', stage: 'basicVocab' },
+  { en: 'celebrate', phon: '/ˈselɪbreɪt/', cn: 'v. 庆祝', stage: 'basicVocab' },
+  { en: 'central', phon: '/ˈsentrəl/', cn: 'adj. 中心的', stage: 'basicVocab' },
+  { en: 'certain', phon: '/ˈsɜːrtn/', cn: 'adj. 确定的', stage: 'basicVocab' },
+  { en: 'chain', phon: '/tʃeɪn/', cn: 'n. 链条', stage: 'basicVocab' },
+  { en: 'challenge', phon: '/ˈtʃælɪndʒ/', cn: 'n. 挑战', stage: 'basicVocab' },
+  { en: 'champion', phon: '/ˈtʃæmpiən/', cn: 'n. 冠军', stage: 'basicVocab' },
+  { en: 'chance', phon: '/tʃɑːns/', cn: 'n. 机会', stage: 'basicVocab' },
+  { en: 'change', phon: '/tʃeɪndʒ/', cn: 'v./n. 改变', stage: 'basicVocab' },
+  { en: 'character', phon: '/ˈkærəktər/', cn: 'n. 性格', stage: 'basicVocab' },
+  { en: 'charge', phon: '/tʃɑːrdʒ/', cn: 'v. 收费', stage: 'basicVocab' },
+  { en: 'cheat', phon: '/tʃiːt/', cn: 'v. 欺骗', stage: 'basicVocab' },
+  { en: 'check', phon: '/tʃek/', cn: 'v. 检查', stage: 'basicVocab' },
+  { en: 'cheer', phon: '/tʃɪr/', cn: 'v./n. 欢呼', stage: 'basicVocab' },
+  { en: 'chief', phon: '/tʃiːf/', cn: 'adj. 主要的 n. 首领', stage: 'basicVocab' },
+  { en: 'choice', phon: '/tʃɔɪs/', cn: 'n. 选择', stage: 'basicVocab' },
+  { en: 'circle', phon: '/ˈsɜːrkl/', cn: 'n. 圆圈', stage: 'basicVocab' },
+  { en: 'citizen', phon: '/ˈsɪtɪzn/', cn: 'n. 公民', stage: 'basicVocab' },
+  { en: 'claim', phon: '/kleɪm/', cn: 'v. 声称', stage: 'basicVocab' },
+  { en: 'classic', phon: '/ˈklæsɪk/', cn: 'adj. 经典的', stage: 'basicVocab' },
+  { en: 'climate', phon: '/ˈklaɪmət/', cn: 'n. 气候', stage: 'basicVocab' },
+  { en: 'climb', phon: '/klaɪm/', cn: 'v. 攀登', stage: 'basicVocab' },
+  { en: 'coach', phon: '/kəʊtʃ/', cn: 'n. 教练', stage: 'basicVocab' },
+  { en: 'coal', phon: '/kəʊl/', cn: 'n. 煤', stage: 'basicVocab' },
+  { en: 'coast', phon: '/kəʊst/', cn: 'n. 海岸', stage: 'basicVocab' },
+  { en: 'collect', phon: '/kəˈlekt/', cn: 'v. 收集', stage: 'basicVocab' },
+  { en: 'college', phon: '/ˈkɒlɪdʒ/', cn: 'n. 学院', stage: 'basicVocab' },
+  { en: 'combine', phon: '/kəmˈbaɪn/', cn: 'v. 结合', stage: 'basicVocab' },
+  { en: 'comfort', phon: '/ˈkʌmfərt/', cn: 'n. 舒适', stage: 'basicVocab' },
+  { en: 'command', phon: '/kəˈmɑːnd/', cn: 'v./n. 命令', stage: 'basicVocab' },
+  { en: 'comment', phon: '/ˈkɒment/', cn: 'n./v. 评论', stage: 'basicVocab' },
+  { en: 'common', phon: '/ˈkɒmən/', cn: 'adj. 普通的', stage: 'basicVocab' },
+  { en: 'communicate', phon: '/kəˈmjuːnɪkeɪt/', cn: 'v. 沟通', stage: 'basicVocab' },
+  { en: 'community', phon: '/kəˈmjuːnəti/', cn: 'n. 社区', stage: 'basicVocab' },
+  { en: 'compare', phon: '/kəmˈper/', cn: 'v. 比较', stage: 'basicVocab' },
+  { en: 'compete', phon: '/kəmˈpiːt/', cn: 'v. 竞争', stage: 'basicVocab' },
+  { en: 'complain', phon: '/kəmˈpleɪn/', cn: 'v. 抱怨', stage: 'basicVocab' },
+  { en: 'complete', phon: '/kəmˈpliːt/', cn: 'v. 完成 adj. 完整的', stage: 'basicVocab' },
+  { en: 'concern', phon: '/kənˈsɜːrn/', cn: 'n./v. 关心', stage: 'basicVocab' },
+  { en: 'condition', phon: '/kənˈdɪʃn/', cn: 'n. 条件', stage: 'basicVocab' },
+  { en: 'confidence', phon: '/ˈkɒnfɪdəns/', cn: 'n. 信心', stage: 'basicVocab' },
+  { en: 'academic', phon: '/ˌækəˈdemɪk/', cn: 'adj. 学术的', stage: 'cet4' },
+  { en: 'accelerate', phon: '/əkˈseləreɪt/', cn: 'v. 加速', stage: 'cet4' },
+  { en: 'accommodation', phon: '/əˌkɒməˈdeɪʃn/', cn: 'n. 住宿', stage: 'cet4' },
+  { en: 'accomplish', phon: '/əˈkɒmplɪʃ/', cn: 'v. 完成', stage: 'cet4' },
+  { en: 'accumulate', phon: '/əˈkjuːmjəleɪt/', cn: 'v. 积累', stage: 'cet4' },
+  { en: 'acquaintance', phon: '/əˈkweɪntəns/', cn: 'n. 熟人', stage: 'cet4' },
+  { en: 'administration', phon: '/ədˌmɪnɪˈstreɪʃn/', cn: 'n. 管理', stage: 'cet4' },
+  { en: 'admiration', phon: '/ˌædməˈreɪʃn/', cn: 'n. 钦佩', stage: 'cet4' },
+  { en: 'adolescent', phon: '/ˌædəˈlesnt/', cn: 'n. 青少年', stage: 'cet4' },
+  { en: 'aggressive', phon: '/əˈɡresɪv/', cn: 'adj. 好斗的', stage: 'cet4' },
+  { en: 'agriculture', phon: '/ˈæɡrɪkʌltʃər/', cn: 'n. 农业', stage: 'cet4' },
+  { en: 'allocate', phon: '/ˈæləkeɪt/', cn: 'v. 分配', stage: 'cet4' },
+  { en: 'alternative', phon: '/ɔːlˈtɜːnətɪv/', cn: 'n. 替代方案', stage: 'cet4' },
+  { en: 'amateur', phon: '/ˈæmətər/', cn: 'n. 业余爱好者', stage: 'cet4' },
+  { en: 'ambassador', phon: '/æmˈbæsədər/', cn: 'n. 大使', stage: 'cet4' },
+  { en: 'ambition', phon: '/æmˈbɪʃn/', cn: 'n. 雄心', stage: 'cet4' },
+  { en: 'amusement', phon: '/əˈmjuːzmənt/', cn: 'n. 娱乐', stage: 'cet4' },
+  { en: 'analyze', phon: '/ˈænəlaɪz/', cn: 'v. 分析', stage: 'cet4' },
+  { en: 'anniversary', phon: '/ˌænɪˈvɜːrsəri/', cn: 'n. 周年纪念', stage: 'cet4' },
+  { en: 'anticipate', phon: '/ænˈtɪsɪpeɪt/', cn: 'v. 预期', stage: 'cet4' },
+  { en: 'anxiety', phon: '/æŋˈzaɪəti/', cn: 'n. 焦虑', stage: 'cet4' },
+  { en: 'apparent', phon: '/əˈpærənt/', cn: 'adj. 明显的', stage: 'cet4' },
+  { en: 'appetite', phon: '/ˈæpɪtaɪt/', cn: 'n. 食欲', stage: 'cet4' },
+  { en: 'appliance', phon: '/əˈplaɪəns/', cn: 'n. 电器', stage: 'cet4' },
+  { en: 'applicant', phon: '/ˈæplɪkənt/', cn: 'n. 申请人', stage: 'cet4' },
+  { en: 'appreciate', phon: '/əˈpriːʃieɪt/', cn: 'v. 感激', stage: 'cet4' },
+  { en: 'appropriate', phon: '/əˈprəʊpriət/', cn: 'adj. 适当的', stage: 'cet4' },
+  { en: 'architect', phon: '/ˈɑːrkɪtekt/', cn: 'n. 建筑师', stage: 'cet4' },
+  { en: 'artificial', phon: '/ˌɑːrtɪˈfɪʃl/', cn: 'adj. 人造的', stage: 'cet4' },
+  { en: 'assemble', phon: '/əˈsembl/', cn: 'v. 组装', stage: 'cet4' },
+  { en: 'assess', phon: '/əˈses/', cn: 'v. 评估', stage: 'cet4' },
+  { en: 'assign', phon: '/əˈsaɪn/', cn: 'v. 分配', stage: 'cet4' },
+  { en: 'associate', phon: '/əˈsəʊʃieɪt/', cn: 'v. 联系', stage: 'cet4' },
+  { en: 'assumption', phon: '/əˈsʌmpʃn/', cn: 'n. 假设', stage: 'cet4' },
+  { en: 'atmosphere', phon: '/ˈætməsfɪr/', cn: 'n. 气氛', stage: 'cet4' },
+  { en: 'attach', phon: '/əˈtætʃ/', cn: 'v. 附上', stage: 'cet4' },
+  { en: 'attain', phon: '/əˈteɪn/', cn: 'v. 达到', stage: 'cet4' },
+  { en: 'authority', phon: '/ɔːˈθɒrəti/', cn: 'n. 权威', stage: 'cet4' },
+  { en: 'automatic', phon: '/ˌɔːtəˈmætɪk/', cn: 'adj. 自动的', stage: 'cet4' },
+  { en: 'awful', phon: '/ˈɔːfl/', cn: 'adj. 糟糕的', stage: 'cet4' },
+  { en: 'awkward', phon: '/ˈɔːkwərd/', cn: 'adj. 尴尬的', stage: 'cet4' },
+  { en: 'background', phon: '/ˈbækɡraʊnd/', cn: 'n. 背景', stage: 'cet4' },
+  { en: 'bacteria', phon: '/bækˈtɪriə/', cn: 'n. 细菌', stage: 'cet4' },
+  { en: 'banquet', phon: '/ˈbæŋkwɪt/', cn: 'n. 宴会', stage: 'cet4' },
+  { en: 'barrier', phon: '/ˈbæriər/', cn: 'n. 障碍', stage: 'cet4' },
+  { en: 'basically', phon: '/ˈbeɪsɪkli/', cn: 'adv. 基本上', stage: 'cet4' },
+  { en: 'battery', phon: '/ˈbætəri/', cn: 'n. 电池', stage: 'cet4' },
+  { en: 'behavior', phon: '/bɪˈheɪvjər/', cn: 'n. 行为', stage: 'cet4' },
+  { en: 'beneath', phon: '/bɪˈniːθ/', cn: 'prep. 在…之下', stage: 'cet4' },
+  { en: 'billion', phon: '/ˈbɪljən/', cn: 'n. 十亿', stage: 'cet4' },
+  { en: 'biology', phon: '/baɪˈɒlədʒi/', cn: 'n. 生物学', stage: 'cet4' },
+  { en: 'bother', phon: '/ˈbɒðər/', cn: 'v. 打扰', stage: 'cet4' },
+  { en: 'boundary', phon: '/ˈbaʊndri/', cn: 'n. 边界', stage: 'cet4' },
+  { en: 'brand', phon: '/brænd/', cn: 'n. 品牌', stage: 'cet4' },
+  { en: 'breakdown', phon: '/ˈbreɪkdaʊn/', cn: 'n. 故障', stage: 'cet4' },
+  { en: 'broadcast', phon: '/ˈbrɔːdkɑːst/', cn: 'v./n. 广播', stage: 'cet4' },
+  { en: 'budget', phon: '/ˈbʌdʒɪt/', cn: 'n. 预算', stage: 'cet4' },
+  { en: 'bullet', phon: '/ˈbʊlɪt/', cn: 'n. 子弹', stage: 'cet4' },
+  { en: 'bureau', phon: '/ˈbjʊrəʊ/', cn: 'n. 局；办公室', stage: 'cet4' },
+  { en: 'cable', phon: '/ˈkeɪbl/', cn: 'n. 电缆', stage: 'cet4' },
+  { en: 'calculate', phon: '/ˈkælkjuleɪt/', cn: 'v. 计算', stage: 'cet4' },
+  { en: 'calendar', phon: '/ˈkælɪndər/', cn: 'n. 日历', stage: 'cet4' },
+  { en: 'campaign', phon: '/kæmˈpeɪn/', cn: 'n. 运动', stage: 'cet4' },
+  { en: 'campus', phon: '/ˈkæmpəs/', cn: 'n. 校园', stage: 'cet4' },
+  { en: 'capacity', phon: '/kəˈpæsəti/', cn: 'n. 容量', stage: 'cet4' },
+  { en: 'career', phon: '/kəˈrɪr/', cn: 'n. 职业', stage: 'cet4' },
+  { en: 'cargo', phon: '/ˈkɑːrɡəʊ/', cn: 'n. 货物', stage: 'cet4' },
+  { en: 'catalog', phon: '/ˈkætəlɒɡ/', cn: 'n. 目录', stage: 'cet4' },
+  { en: 'category', phon: '/ˈkætəɡəri/', cn: 'n. 类别', stage: 'cet4' },
+  { en: 'cease', phon: '/siːs/', cn: 'v. 停止', stage: 'cet4' },
+  { en: 'centigrade', phon: '/ˈsentɪɡreɪd/', cn: 'adj. 摄氏的', stage: 'cet4' },
+  { en: 'chamber', phon: '/ˈtʃeɪmbər/', cn: 'n. 房间；议院', stage: 'cet4' },
+  { en: 'channel', phon: '/ˈtʃænl/', cn: 'n. 频道；海峡', stage: 'cet4' },
+  { en: 'chapter', phon: '/ˈtʃæptər/', cn: 'n. 章节', stage: 'cet4' },
+  { en: 'characteristic', phon: '/ˌkærəktəˈrɪstɪk/', cn: 'n. 特征', stage: 'cet4' },
+  { en: 'charity', phon: '/ˈtʃærəti/', cn: 'n. 慈善', stage: 'cet4' },
+  { en: 'chemical', phon: '/ˈkemɪkl/', cn: 'adj. 化学的', stage: 'cet4' },
+  { en: 'cherish', phon: '/ˈtʃerɪʃ/', cn: 'v. 珍惜', stage: 'cet4' },
+  { en: 'childhood', phon: '/ˈtʃaɪldhʊd/', cn: 'n. 童年', stage: 'cet4' },
+  { en: 'circumstance', phon: '/ˈsɜːrkəmstəns/', cn: 'n. 环境', stage: 'cet4' },
+  { en: 'civilian', phon: '/sɪˈvɪliən/', cn: 'n. 平民', stage: 'cet4' },
+  { en: 'civilization', phon: '/ˌsɪvəlaɪˈzeɪʃn/', cn: 'n. 文明', stage: 'cet4' },
+  { en: 'clarify', phon: '/ˈklærɪfaɪ/', cn: 'v. 澄清', stage: 'cet4' },
+  { en: 'classical', phon: '/ˈklæsɪkl/', cn: 'adj. 古典的', stage: 'cet4' },
+  { en: 'classify', phon: '/ˈklæsɪfaɪ/', cn: 'v. 分类', stage: 'cet4' },
+  { en: 'client', phon: '/ˈklaɪənt/', cn: 'n. 客户', stage: 'cet4' },
+  { en: 'collapse', phon: '/kəˈlæps/', cn: 'v./n. 倒塌', stage: 'cet4' },
+  { en: 'colleague', phon: '/ˈkɒliːɡ/', cn: 'n. 同事', stage: 'cet4' },
+  { en: 'colonial', phon: '/kəˈləʊniəl/', cn: 'adj. 殖民地的', stage: 'cet4' },
+  { en: 'combat', phon: '/ˈkɒmbæt/', cn: 'n./v. 战斗', stage: 'cet4' },
+  { en: 'comedy', phon: '/ˈkɒmədi/', cn: 'n. 喜剧', stage: 'cet4' },
+  { en: 'commerce', phon: '/ˈkɒmɜːrs/', cn: 'n. 商业', stage: 'cet4' },
+  { en: 'commercial', phon: '/kəˈmɜːrʃl/', cn: 'adj. 商业的', stage: 'cet4' },
+  { en: 'commission', phon: '/kəˈmɪʃn/', cn: 'n. 委员会；佣金', stage: 'cet4' },
+  { en: 'commit', phon: '/kəˈmɪt/', cn: 'v. 承诺；犯罪', stage: 'cet4' },
+  { en: 'committee', phon: '/kəˈmɪti/', cn: 'n. 委员会', stage: 'cet4' },
+  { en: 'communicate', phon: '/kəˈmjuːnɪkeɪt/', cn: 'v. 沟通', stage: 'cet4' },
+  { en: 'companion', phon: '/kəmˈpæniən/', cn: 'n. 同伴', stage: 'cet4' },
+  { en: 'compensate', phon: '/ˈkɒmpenseɪt/', cn: 'v. 补偿', stage: 'cet4' },
+  { en: 'competent', phon: '/ˈkɒmpɪtənt/', cn: 'adj. 有能力的', stage: 'cet4' },
+  { en: 'abolish', phon: '/əˈbɒlɪʃ/', cn: 'v. 废除', stage: 'cet6' },
+  { en: 'absurd', phon: '/əbˈsɜːd/', cn: 'adj. 荒谬的', stage: 'cet6' },
+  { en: 'accessory', phon: '/əkˈsesəri/', cn: 'n. 附件', stage: 'cet6' },
+  { en: 'acquaint', phon: '/əˈkweɪnt/', cn: 'v. 使熟悉', stage: 'cet6' },
+  { en: 'adhere', phon: '/ədˈhɪr/', cn: 'v. 遵守', stage: 'cet6' },
+  { en: 'adjacent', phon: '/əˈdʒeɪsnt/', cn: 'adj. 邻近的', stage: 'cet6' },
+  { en: 'administer', phon: '/ədˈmɪnɪstər/', cn: 'v. 管理', stage: 'cet6' },
+  { en: 'adverse', phon: '/ˈædvɜːs/', cn: 'adj. 不利的', stage: 'cet6' },
+  { en: 'advocate', phon: '/ˈædvəkeɪt/', cn: 'v. 提倡', stage: 'cet6' },
+  { en: 'aggregate', phon: '/ˈæɡrɪɡət/', cn: 'v. 聚集', stage: 'cet6' },
+  { en: 'agony', phon: '/ˈæɡəni/', cn: 'n. 痛苦', stage: 'cet6' },
+  { en: 'alienate', phon: '/ˈeɪliəneɪt/', cn: 'v. 疏远', stage: 'cet6' },
+  { en: 'allege', phon: '/əˈledʒ/', cn: 'v. 断言', stage: 'cet6' },
+  { en: 'alleviate', phon: '/əˈliːvieɪt/', cn: 'v. 减轻', stage: 'cet6' },
+  { en: 'allocate', phon: '/ˈæləkeɪt/', cn: 'v. 分配', stage: 'cet6' },
+  { en: 'ambiguous', phon: '/æmˈbɪɡjuəs/', cn: 'adj. 模糊的', stage: 'cet6' },
+  { en: 'amend', phon: '/əˈmend/', cn: 'v. 修正', stage: 'cet6' },
+  { en: 'analogy', phon: '/əˈnælədʒi/', cn: 'n. 类比', stage: 'cet6' },
+  { en: 'anonymous', phon: '/əˈnɒnɪməs/', cn: 'adj. 匿名的', stage: 'cet6' },
+  { en: 'apparatus', phon: '/ˌæpəˈreɪtəs/', cn: 'n. 设备', stage: 'cet6' },
+  { en: 'applaud', phon: '/əˈplɔːd/', cn: 'v. 鼓掌', stage: 'cet6' },
+  { en: 'appraisal', phon: '/əˈpreɪzl/', cn: 'n. 评估', stage: 'cet6' },
+  { en: 'articulate', phon: '/ɑːrˈtɪkjuleɪt/', cn: 'v. 清晰表达', stage: 'cet6' },
+  { en: 'ascend', phon: '/əˈsend/', cn: 'v. 上升', stage: 'cet6' },
+  { en: 'ascribe', phon: '/əˈskraɪb/', cn: 'v. 归因于', stage: 'cet6' },
+  { en: 'assault', phon: '/əˈsɔːlt/', cn: 'n./v. 攻击', stage: 'cet6' },
+  { en: 'assert', phon: '/əˈsɜːrt/', cn: 'v. 断言', stage: 'cet6' },
+  { en: 'assimilate', phon: '/əˈsɪmɪleɪt/', cn: 'v. 吸收', stage: 'cet6' },
+  { en: 'assurance', phon: '/əˈʃʊrəns/', cn: 'n. 保证', stage: 'cet6' },
+  { en: 'avail', phon: '/əˈveɪl/', cn: 'v. 有益于', stage: 'cet6' },
+  { en: 'avert', phon: '/əˈvɜːrt/', cn: 'v. 避免', stage: 'cet6' },
+  { en: 'baffle', phon: '/ˈbæfl/', cn: 'v. 使困惑', stage: 'cet6' },
+  { en: 'barren', phon: '/ˈbærən/', cn: 'adj. 贫瘠的', stage: 'cet6' },
+  { en: 'beforehand', phon: '/bɪˈfɔːrhænd/', cn: 'adv. 预先', stage: 'cet6' },
+  { en: 'betray', phon: '/bɪˈtreɪ/', cn: 'v. 背叛', stage: 'cet6' },
+  { en: 'bewilder', phon: '/bɪˈwɪldər/', cn: 'v. 使迷惑', stage: 'cet6' },
+  { en: 'bias', phon: '/ˈbaɪəs/', cn: 'n. 偏见', stage: 'cet6' },
+  { en: 'blaze', phon: '/bleɪz/', cn: 'n. 火焰 v. 燃烧', stage: 'cet6' },
+  { en: 'bleak', phon: '/bliːk/', cn: 'adj. 荒凉的', stage: 'cet6' },
+  { en: 'bless', phon: '/bles/', cn: 'v. 祝福', stage: 'cet6' },
+  { en: 'blossom', phon: '/ˈblɒsəm/', cn: 'n. 花 v. 开花', stage: 'cet6' },
+  { en: 'blunder', phon: '/ˈblʌndər/', cn: 'n. 大错', stage: 'cet6' },
+  { en: 'blunt', phon: '/blʌnt/', cn: 'adj. 钝的', stage: 'cet6' },
+  { en: 'bonus', phon: '/ˈbəʊnəs/', cn: 'n. 奖金', stage: 'cet6' },
+  { en: 'boom', phon: '/buːm/', cn: 'n./v. 繁荣', stage: 'cet6' },
+  { en: 'boycott', phon: '/ˈbɔɪkɒt/', cn: 'v./n. 抵制', stage: 'cet6' },
+  { en: 'breach', phon: '/briːtʃ/', cn: 'n./v. 违反', stage: 'cet6' },
+  { en: 'breakdown', phon: '/ˈbreɪkdaʊn/', cn: 'n. 故障', stage: 'cet6' },
+  { en: 'breed', phon: '/briːd/', cn: 'v. 繁殖', stage: 'cet6' },
+  { en: 'bribe', phon: '/braɪb/', cn: 'n./v. 贿赂', stage: 'cet6' },
+  { en: 'brisk', phon: '/brɪsk/', cn: 'adj. 轻快的', stage: 'cet6' },
+  { en: 'bruise', phon: '/bruːz/', cn: 'n. 瘀伤', stage: 'cet6' },
+  { en: 'brutal', phon: '/ˈbruːtl/', cn: 'adj. 残忍的', stage: 'cet6' },
+  { en: 'bud', phon: '/bʌd/', cn: 'n. 芽 v. 发芽', stage: 'cet6' },
+  { en: 'bulk', phon: '/bʌlk/', cn: 'n. 大批', stage: 'cet6' },
+  { en: 'bulletin', phon: '/ˈbʊlətɪn/', cn: 'n. 公告', stage: 'cet6' },
+  { en: 'bureaucracy', phon: '/bjʊəˈrɒkrəsi/', cn: 'n. 官僚机构', stage: 'cet6' },
+  { en: 'buzz', phon: '/bʌz/', cn: 'n./v. 嗡嗡声', stage: 'cet6' },
+  { en: 'cafeteria', phon: '/ˌkæfəˈtɪriə/', cn: 'n. 自助餐厅', stage: 'cet6' },
+  { en: 'calcium', phon: '/ˈkælsiəm/', cn: 'n. 钙', stage: 'cet6' },
+  { en: 'catastrophe', phon: '/kəˈtæstrəfi/', cn: 'n. 灾难', stage: 'cet6' },
+  { en: 'cater', phon: '/ˈkeɪtər/', cn: 'v. 提供餐饮', stage: 'cet6' },
+  { en: 'caution', phon: '/ˈkɔːʃn/', cn: 'n. 谨慎', stage: 'cet6' },
+  { en: 'census', phon: '/ˈsensəs/', cn: 'n. 人口普查', stage: 'cet6' },
+  { en: 'chronic', phon: '/ˈkrɒnɪk/', cn: 'adj. 慢性的', stage: 'cet6' },
+  { en: 'chunk', phon: '/tʃʌŋk/', cn: 'n. 大块', stage: 'cet6' },
+  { en: 'circulation', phon: '/ˌsɜːrkjəˈleɪʃn/', cn: 'n. 流通', stage: 'cet6' },
+  { en: 'clamp', phon: '/klæmp/', cn: 'n. 夹具 v. 夹紧', stage: 'cet6' },
+  { en: 'clarify', phon: '/ˈklærɪfaɪ/', cn: 'v. 澄清', stage: 'cet6' },
+  { en: 'clash', phon: '/klæʃ/', cn: 'v./n. 冲突', stage: 'cet6' },
+  { en: 'clasp', phon: '/klɑːsp/', cn: 'v./n. 紧握', stage: 'cet6' },
+  { en: 'climax', phon: '/ˈklaɪmæks/', cn: 'n. 高潮', stage: 'cet6' },
+  { en: 'cling', phon: '/klɪŋ/', cn: 'v. 紧握；坚持', stage: 'cet6' },
+  { en: 'clinic', phon: '/ˈklɪnɪk/', cn: 'n. 诊所', stage: 'cet6' },
+  { en: 'clip', phon: '/klɪp/', cn: 'n. 夹子 v. 剪', stage: 'cet6' },
+  { en: 'clone', phon: '/kləʊn/', cn: 'n./v. 克隆', stage: 'cet6' },
+  { en: 'closet', phon: '/ˈklɒzɪt/', cn: 'n. 壁橱', stage: 'cet6' },
+  { en: 'cluster', phon: '/ˈklʌstər/', cn: 'n. 群 v. 聚集', stage: 'cet6' },
+  { en: 'coalition', phon: '/ˌkəʊəˈlɪʃn/', cn: 'n. 联盟', stage: 'cet6' },
+  { en: 'cognitive', phon: '/ˈkɒɡnɪtɪv/', cn: 'adj. 认知的', stage: 'cet6' },
+  { en: 'acquisition', phon: '/ˌækwɪˈzɪʃn/', cn: 'n. 获得', stage: 'ielts' },
+  { en: 'activist', phon: '/ˈæktɪvɪst/', cn: 'n. 活动家', stage: 'ielts' },
+  { en: 'addiction', phon: '/əˈdɪkʃn/', cn: 'n. 上瘾', stage: 'ielts' },
+  { en: 'adolescence', phon: '/ˌædəˈlesns/', cn: 'n. 青春期', stage: 'ielts' },
+  { en: 'advent', phon: '/ˈædvent/', cn: 'n. 到来', stage: 'ielts' },
+  { en: 'adversity', phon: '/ədˈvɜːsəti/', cn: 'n. 逆境', stage: 'ielts' },
+  { en: 'advocate', phon: '/ˈædvəkeɪt/', cn: 'v. 提倡 n. 倡导者', stage: 'ielts' },
+  { en: 'aesthetic', phon: '/iːsˈθetɪk/', cn: 'adj. 美学的', stage: 'ielts' },
+  { en: 'affiliation', phon: '/əˌfɪliˈeɪʃn/', cn: 'n. 从属关系', stage: 'ielts' },
+  { en: 'agenda', phon: '/əˈdʒendə/', cn: 'n. 议程', stage: 'ielts' },
+  { en: 'aggravate', phon: '/ˈæɡrəveɪt/', cn: 'v. 加重', stage: 'ielts' },
+  { en: 'algorithm', phon: '/ˈælɡərɪðəm/', cn: 'n. 算法', stage: 'ielts' },
+  { en: 'alien', phon: '/ˈeɪliən/', cn: 'adj. 陌生的 n. 外星人', stage: 'ielts' },
+  { en: 'alignment', phon: '/əˈlaɪnmənt/', cn: 'n. 对齐', stage: 'ielts' },
+  { en: 'allege', phon: '/əˈledʒ/', cn: 'v. 断言', stage: 'ielts' },
+  { en: 'altruism', phon: '/ˈæltruɪzəm/', cn: 'n. 利他主义', stage: 'ielts' },
+  { en: 'ambiguous', phon: '/æmˈbɪɡjuəs/', cn: 'adj. 模糊的', stage: 'ielts' },
+  { en: 'amenity', phon: '/əˈmenəti/', cn: 'n. 便利设施', stage: 'ielts' },
+  { en: 'anecdote', phon: '/ˈænɪkdəʊt/', cn: 'n. 轶事', stage: 'ielts' },
+  { en: 'anthropology', phon: '/ˌænθrəˈpɒlədʒi/', cn: 'n. 人类学', stage: 'ielts' },
+  { en: 'antibiotic', phon: '/ˌæntibaɪˈɒtɪk/', cn: 'n. 抗生素', stage: 'ielts' },
+  { en: 'apparatus', phon: '/ˌæpəˈreɪtəs/', cn: 'n. 设备', stage: 'ielts' },
+  { en: 'arbitrary', phon: '/ˈɑːrbɪtrəri/', cn: 'adj. 武断的', stage: 'ielts' },
+  { en: 'archaeology', phon: '/ˌɑːrkiˈɒlədʒi/', cn: 'n. 考古学', stage: 'ielts' },
+  { en: 'archetype', phon: '/ˈɑːrkitaɪp/', cn: 'n. 原型', stage: 'ielts' },
+  { en: 'architecture', phon: '/ˈɑːrkɪtektʃər/', cn: 'n. 建筑学', stage: 'ielts' },
+  { en: 'assertion', phon: '/əˈsɜːrʃn/', cn: 'n. 断言', stage: 'ielts' },
+  { en: 'assessment', phon: '/əˈsesmənt/', cn: 'n. 评估', stage: 'ielts' },
+  { en: 'astronomy', phon: '/əˈstrɒnəmi/', cn: 'n. 天文学', stage: 'ielts' },
+  { en: 'auction', phon: '/ˈɔːkʃn/', cn: 'n./v. 拍卖', stage: 'ielts' },
+  { en: 'audit', phon: '/ˈɔːdɪt/', cn: 'n./v. 审计', stage: 'ielts' },
+  { en: 'authentic', phon: '/ɔːˈθentɪk/', cn: 'adj. 真实的', stage: 'ielts' },
+  { en: 'authenticity', phon: '/ˌɔːθenˈtɪsəti/', cn: 'n. 真实性', stage: 'ielts' },
+  { en: 'automation', phon: '/ˌɔːtəˈmeɪʃn/', cn: 'n. 自动化', stage: 'ielts' },
+  { en: 'autonomy', phon: '/ɔːˈtɒnəmi/', cn: 'n. 自治', stage: 'ielts' },
+  { en: 'avalanche', phon: '/ˈævəlɑːntʃ/', cn: 'n. 雪崩', stage: 'ielts' },
+  { en: 'bachelor', phon: '/ˈbætʃələr/', cn: 'n. 学士', stage: 'ielts' },
+  { en: 'backbone', phon: '/ˈbækbəʊn/', cn: 'n. 支柱', stage: 'ielts' },
+  { en: 'bankruptcy', phon: '/ˈbæŋkrʌptsi/', cn: 'n. 破产', stage: 'ielts' },
+  { en: 'beverage', phon: '/ˈbevərɪdʒ/', cn: 'n. 饮料', stage: 'ielts' },
+  { en: 'bilateral', phon: '/ˌbaɪˈlætərəl/', cn: 'adj. 双边的', stage: 'ielts' },
+  { en: 'biography', phon: '/baɪˈɒɡrəfi/', cn: 'n. 传记', stage: 'ielts' },
+  { en: 'biodiversity', phon: '/ˌbaɪəʊdaɪˈvɜːrsəti/', cn: 'n. 生物多样性', stage: 'ielts' },
+  { en: 'blueprint', phon: '/ˈbluːprɪnt/', cn: 'n. 蓝图', stage: 'ielts' },
+  { en: 'botany', phon: '/ˈbɒtəni/', cn: 'n. 植物学', stage: 'ielts' },
+  { en: 'bottleneck', phon: '/ˈbɒtlnek/', cn: 'n. 瓶颈', stage: 'ielts' },
+  { en: 'boycott', phon: '/ˈbɔɪkɒt/', cn: 'v./n. 抵制', stage: 'ielts' },
+  { en: 'breakthrough', phon: '/ˈbreɪkθruː/', cn: 'n. 突破', stage: 'ielts' },
+  { en: 'broadband', phon: '/ˈbrɔːdbænd/', cn: 'n. 宽带', stage: 'ielts' },
+  { en: 'budget', phon: '/ˈbʌdʒɪt/', cn: 'n. 预算 v. 安排开支', stage: 'ielts' },
+  { en: 'buzzword', phon: '/ˈbʌzwɜːrd/', cn: 'n. 流行语', stage: 'ielts' },
+  { en: 'bypass', phon: '/ˈbaɪpɑːs/', cn: 'v. 绕过 n. 旁路', stage: 'ielts' },
+  { en: 'calorie', phon: '/ˈkæləri/', cn: 'n. 卡路里', stage: 'ielts' },
+  { en: 'catalyst', phon: '/ˈkætəlɪst/', cn: 'n. 催化剂', stage: 'ielts' },
+  { en: 'catastrophe', phon: '/kəˈtæstrəfi/', cn: 'n. 灾难', stage: 'ielts' },
+  { en: 'chronic', phon: '/ˈkrɒnɪk/', cn: 'adj. 慢性的', stage: 'ielts' },
+  { en: 'citizenship', phon: '/ˈsɪtɪznʃɪp/', cn: 'n. 公民身份', stage: 'ielts' },
+  { en: 'cognitive', phon: '/ˈkɒɡnɪtɪv/', cn: 'adj. 认知的', stage: 'ielts' },
+  { en: 'collaborate', phon: '/kəˈlæbəreɪt/', cn: 'v. 合作', stage: 'ielts' },
+  { en: 'commodity', phon: '/kəˈmɒdəti/', cn: 'n. 商品', stage: 'ielts' },
+  { en: 'compensate', phon: '/ˈkɒmpenseɪt/', cn: 'v. 补偿', stage: 'ielts' },
+  { en: 'comply', phon: '/kəmˈplaɪ/', cn: 'v. 遵守', stage: 'ielts' },
+  { en: 'component', phon: '/kəmˈpəʊnənt/', cn: 'n. 组成部分', stage: 'ielts' },
+  { en: 'conceive', phon: '/kənˈsiːv/', cn: 'v. 构思', stage: 'ielts' },
+  { en: 'condense', phon: '/kənˈdens/', cn: 'v. 浓缩', stage: 'ielts' },
+  { en: 'confer', phon: '/kənˈfɜːr/', cn: 'v. 授予', stage: 'ielts' },
+  { en: 'confidential', phon: '/ˌkɒnfɪˈdenʃl/', cn: 'adj. 机密的', stage: 'ielts' },
+  { en: 'conform', phon: '/kənˈfɔːrm/', cn: 'v. 遵守', stage: 'ielts' },
+  { en: 'conscience', phon: '/ˈkɒnʃəns/', cn: 'n. 良心', stage: 'ielts' },
+  { en: 'consensus', phon: '/kənˈsensəs/', cn: 'n. 共识', stage: 'ielts' },
+  { en: 'consolidate', phon: '/kənˈsɒlɪdeɪt/', cn: 'v. 巩固', stage: 'ielts' },
+  { en: 'contemplate', phon: '/ˈkɒntəmpleɪt/', cn: 'v. 沉思', stage: 'ielts' },
+  { en: 'contempt', phon: '/kənˈtempt/', cn: 'n. 轻视', stage: 'ielts' },
+  { en: 'controversy', phon: '/ˈkɒntrəvɜːrsi/', cn: 'n. 争议', stage: 'ielts' },
+  { en: 'convenience', phon: '/kənˈviːniəns/', cn: 'n. 便利', stage: 'ielts' },
+  { en: 'corrupt', phon: '/kəˈrʌpt/', cn: 'adj. 腐败的', stage: 'ielts' },
+  { en: 'criterion', phon: '/kraɪˈtɪriən/', cn: 'n. 标准', stage: 'ielts' },
+  { en: 'cynical', phon: '/ˈsɪnɪkl/', cn: 'adj. 愤世嫉俗的', stage: 'ielts' }
+];
+var wordStudyIndex = 0;
+
+function updateWordStudyUI() {
+  var w = wordStudyList[wordStudyIndex];
+  document.getElementById('ws-word').textContent = w.en;
+  document.getElementById('ws-phonetic').textContent = w.phon;
+  document.getElementById('ws-meaning').textContent = w.cn;
+  document.getElementById('ws-index').textContent = (wordStudyIndex+1)+'/'+wordStudyList.length; loadSentences(w.en); updateMasteredBtn(); setTimeout(function(){ loadSentences(w.en); }, 100);
+  wordMastered = false;
+  var btn = document.getElementById('mastered-btn');
+  if (btn) { btn.innerHTML = '&#x2B55; 标记已掌握'; btn.style.background = ''; }
+}
+
+function prevWord() {
+  var _words = wordStudyList.filter(function(w){return w.stage===currentListId}); if (wordStudyIndex > 0) { wordStudyIndex--; updateWordStudyUI(); }
+}
+
+function nextWord() {
+  var _words2 = wordStudyList.filter(function(w){return w.stage===currentListId}); if (wordStudyIndex < _words2.length - 1) { wordStudyIndex++; updateWordStudyUI(); }
+}
+
+function loadSentences(en) {
+  var s = {
+    'abandon': ['He abandoned his car in the snow.', '他把车丢弃在雪地里。', 'The baby was abandoned by its mother.', '这个婴儿被母亲遗弃了。'],
+    'ability': ['She has the ability to solve complex problems.', '她有解决复杂问题的能力。', 'He has great musical ability.', '他有很强的音乐才能。'],
+    'abroad': ['She has never been abroad before.', '她以前从未出过国。', 'I plan to study abroad next year.', '我计划明年出国留学。'],
+    'absence': ['His absence from work was noted.', '老板注意到了他的缺勤。', 'In the absence of evidence, the case was dropped.', '由于缺乏证据，案件被撤销了。'],
+    'absolute': ['You have my absolute trust.', '你有我绝对的信任。', 'That is an absolute lie.', '那是彻头彻尾的谎言。'],
+    'absorb': ['Plants absorb water through roots.', '植物通过根部吸收水分。', 'I was absorbed in my book.', '我太专注于看书了。'],
+    'abstract': ['The idea is too abstract.', '这个概念太抽象。', 'He has an abstract painting.', '他有一幅抽象画。'],
+    'abundant': ['The country has abundant resources.', '这个国家资源丰富。', 'Food was abundant at the party.', '派对食物很丰富。'],
+    'accept': ['I am happy to accept your invitation.', '我很高兴接受你的邀请。', 'She could not accept the truth.', '她无法接受这个事实。'],
+    'achieve': ['You can achieve anything with hard work.', '只要努力，你可以实现任何目标。', 'He achieved his dream of becoming a doctor.', '他实现了成为医生的梦想。'],
+    'active': ['She stays active by running every morning.', '她每天早上跑步保持活力。', 'He plays an active role in the community.', '他在社区中扮演积极的角色。'],
+    'admire': ['I really admire your courage.', '我真的很钦佩你的勇气。', 'Everyone admires her talent for music.', '每个人都赞赏她的音乐天赋。'],
+    'advice': ['Could you give me some advice?', '你能给我一些建议吗？', 'She followed her mother advice.', '她听从了母亲的忠告。'],
+    'afford': ['I can not afford a new car right now.', '我现在买不起新车。', 'We cannot afford to waste any more time.', '我们浪费不起更多时间了。'],
+    'against': ['He leaned against the wall.', '他靠在墙上。', 'Are you for or against this plan?', '你是赞成还是反对这个计划？'],
+    'ancient': ['They explored an ancient temple.', '他们探索了一座古庙。', 'This custom dates back to ancient times.', '这个习俗可以追溯到古代。'],
+    'announce': ['They will announce the winner tomorrow.', '他们明天将宣布获胜者。', 'The company announced a new product.', '公司发布了一款新产品。'],
+    'anxious': ['She felt anxious before the exam.', '考试前她感到焦虑。', 'I am anxious to hear the news.', '我急切地想听到消息。'],
+    'apology': ['He made a sincere apology.', '他做出了真诚的道歉。', 'I owe you an apology.', '我欠你一个道歉。'],
+    'appear': ['A rainbow appeared after the rain.', '雨后出现了一道彩虹。', 'She appears to be very tired.', '她显得很疲惫。'],
+    'balance': ['It is important to keep a work-life balance.', '保持工作与生活的平衡很重要。', 'She lost her balance and fell.', '她失去平衡摔倒了。'],
+    'bargain': ['This jacket is a real bargain.', '这件夹克真便宜。', 'We bargained with the seller for a better price.', '我们和卖家讨价还价。'],
+    'beauty': ['The beauty of nature amazed us.', '大自然的美让我们惊叹。', 'She has a beauty that comes from within.', '她有一种来自内心的美。'],
+    'believe': ['I believe you can do it.', '我相信你能做到。', 'Do you believe in ghosts?', '你相信有鬼吗？'],
+    'benefit': ['Exercise has many health benefits.', '运动对健康有很多好处。', 'Everyone will benefit from this change.', '每个人都将从这次改变中受益。'],
+    'blanket': ['She wrapped herself in a warm blanket.', '她用一条温暖的毯子裹住自己。', 'A blanket of snow covered the ground.', '一层白雪覆盖了地面。'],
+    'borrow': ['Can I borrow your pen?', '我能借一下你的笔吗？', 'He borrowed a book from the library.', '他从图书馆借了一本书。'],
+    'breathe': ['Take a deep breath and relax.', '深吸一口气，放松。', 'I can hardly breathe in this heat.', '这种高温下我几乎喘不过气来。'],
+    'brilliant': ['That is a brilliant idea!', '那真是个绝妙的主意！', 'She gave a brilliant performance.', '她的表演非常出色。'],
+    'capture': ['The police captured the thief.', '警察抓住了小偷。', 'This photo captures a beautiful moment.', '这张照片捕捉到了一个美丽的瞬间。'],
+    'certain': ['I am certain she will come.', '我肯定她会来。', 'There is a certain charm about this place.', '这个地方有一种独特的魅力。'],
+    'challenge': ['He loves a good challenge.', '他喜欢挑战。', 'This project will challenge your skills.', '这个项目将考验你的技能。'],
+    'climate': ['The climate here is very mild.', '这里的气候非常温和。', 'We must take action on climate change.', '我们必须对气候变化采取行动。'],
+    'combine': ['Combine the flour and sugar in a bowl.', '把面粉和糖混合在碗里。', 'The movie combines action and comedy.', '这部电影结合了动作和喜剧。'],
+    'comfort': ['Her words brought me great comfort.', '她的话给了我很大的安慰。', 'These shoes are very comfortable.', '这双鞋非常舒适。'],
+    'compare': ['Let us compare the two options.', '我们来比较一下这两个选项。', 'Life is often compared to a journey.', '人生常被比作旅程。'],
+    'connect': ['The bridge connects the two islands.', '这座桥连接两个岛屿。', 'I feel deeply connected to this city.', '我感觉与这座城市有很深的联系。'],
+    'continue': ['Please continue with your story.', '请继续讲你的故事。', 'The rain continued all day.', '雨下了一整天。'],
+    'courage': ['It takes courage to speak the truth.', '说真话需要勇气。', 'She showed great courage during the crisis.', '危机中她展现了巨大的勇气。'],
+    'curious': ['Children are naturally curious.', '孩子天生就好奇。', 'I am curious to know what happened.', '我很好奇发生了什么。'],
+    'damage': ['The storm caused serious damage.', '暴风雨造成了严重的破坏。', 'Smoking will damage your health.', '吸烟会损害你的健康。'],
+    'declare': ['The president declared a state of emergency.', '总统宣布进入紧急状态。', 'I declare this meeting open.', '我宣布会议开始。'],
+    'defend': ['He defended his title successfully.', '他成功卫冕了冠军头衔。', 'We must defend our rights.', '我们必须捍卫我们的权利。'],
+    'deliver': ['The mailman delivers letters every morning.', '邮递员每天早上送信。', 'She delivered a powerful speech.', '她发表了一篇有力的演讲。'],
+    'deserve': ['You deserve a break after all this work.', '干了这么多活，你该休息一下。', 'He deserves to be recognized.', '他值得被认可。'],
+    'discover': ['Scientists discovered a new planet.', '科学家发现了一颗新行星。', 'I just discovered this amazing restaurant.', '我刚发现这家很棒的餐厅。'],
+    'educate': ['The school educates children from age five.', '这所学校教育五岁以上的孩子。', 'We need to educate the public about this issue.', '我们需要就这个问题教育公众。'],
+    'embrace': ['She embraced her daughter warmly.', '她热情地拥抱了女儿。', 'We should embrace new technology.', '我们应该拥抱新技术。'],
+    'employ': ['The factory employs over 500 workers.', '这个工厂雇用了500多名工人。', 'She employed a clever strategy.', '她采用了一个聪明的策略。'],
+    'encourage': ['Teachers should encourage their students.', '老师应该鼓励学生。', 'His words encouraged me to keep going.', '他的话鼓励我继续前进。']
+  }[en] || ['例句数据加载中...', '请稍候', '', ''];
+  var el = document.getElementById('ws-sentences');
+  if (el) el.innerHTML = '<b>例句：</b><br><span style="color:#4A90D9">' + s[0] + '</span> <span class="speaker-icon" onclick="speakSentence(this.previousElementSibling.textContent)" style="cursor:pointer;font-size:18px">&#128266;</span><br><span style="color:#666">' + s[1] + '</span><br><br><span style="color:#4A90D9">' + s[2] + '</span> <span class="speaker-icon" onclick="speakSentence(this.previousElementSibling.textContent)" style="cursor:pointer;font-size:18px">&#128266;</span><br><span style="color:#666">' + s[3] + '</span>';
+}
+function addToWordbookFromStudy() {
+  var w = wordStudyList[wordStudyIndex];
+  if (!store.wordbook) store.wordbook = [];
+  store.wordbook.push({ en: w.en, cn: w.cn });
+  persist();
+  alert('已添加到生词本！');
+}
+function toggleMastered() {
+  wordMastered = !wordMastered;
+  var btn = document.getElementById('mastered-btn');
+  if (wordMastered) { btn.innerHTML = '&#x2705; 已掌握'; btn.style.background = '#34C759'; }
+  else { btn.innerHTML = '&#x2B55; 标记已掌握'; btn.style.background = ''; }
+}
+function speakWord() { var el = document.getElementById('ws-word'); if (el && el.textContent) { var u = new SpeechSynthesisUtterance(el.textContent); u.lang = 'en-US'; u.rate = 0.8; window.speechSynthesis.speak(u); } }
+function startReview() {
+  if (!store.wordbook || store.wordbook.length === 0) { alert('暂无待复习单词'); return; }
+  navToTab('vocabulary');
+}
+
+function speakSentence(text) {
+  if (!text) return;
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-US";
+  u.rate = 0.85;
+  window.speechSynthesis.speak(u);
+}
+function playSentenceAudio() {
+  var el = document.getElementById('sentence-en');
+  if (!el || !el.textContent) return;
+  var utterance = new SpeechSynthesisUtterance(el.textContent);
+  utterance.lang = 'en-US';
+  utterance.rate = 0.8;
+  window.speechSynthesis.speak(utterance);
+}
+
+function toggleRecord() {
+  alert('录音功能需要HTTPS或localhost权限');
+}
+
+function speakPhonemeDetail() {
+  var el = document.getElementById('detail-example');
+  if (!el || !el.textContent) return;
+  var utterance = new SpeechSynthesisUtterance(el.textContent);
+  utterance.lang = 'en-US';
+  utterance.rate = 0.8;
+  window.speechSynthesis.speak(utterance);
+}
+
+function speakPhonemeSlow() {
+  var el = document.getElementById('detail-example');
+  if (!el || !el.textContent) return;
+  var utterance = new SpeechSynthesisUtterance(el.textContent);
+  utterance.lang = 'en-US';
+  utterance.rate = 0.3;
+  window.speechSynthesis.speak(utterance);
+}
+function changeScene(topic) {
+  var scenes = { '问候': { en: 'Hello, how are you today?', cn: '你好，今天过得怎么样？' }, '购物': { en: 'How much is this?', cn: '这个多少钱？' }, '餐厅': { en: 'I would like to order, please.', cn: '我想点餐。' }, '旅行': { en: 'Where is the nearest hotel?', cn: '最近的酒店在哪里？' }, '工作': { en: 'I have a meeting at 3 PM.', cn: '我下午3点有个会。' }, '学习': { en: 'Could you explain this to me?', cn: '你能给我解释一下这个吗？' } };
+  var s = scenes[topic];
+  if (s) { document.getElementById('sentence-en').textContent = s.en; document.getElementById('sentence-cn').textContent = s.cn; }
+}
+
+// ============ 登录弹窗 ============
+let loginMode = 'login'; // 'login' or 'register'
+
+function showLogin() {
+  document.getElementById('login-overlay').style.display = 'flex';
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login-input').value = '';
+  document.getElementById('login-password').value = '';
+  setLoginMode('login');
+  setTimeout(function() { document.getElementById('login-input').focus(); }, 200);
+}
+
+function setLoginMode(mode) {
+  loginMode = mode;
+  if (mode === 'register') {
+    document.getElementById('login-title').innerHTML = '&#x1F4DD; 注册新账号';
+    document.getElementById('login-desc').textContent = '昵称就是你的账号';
+    document.getElementById('login-btn').textContent = '注 册';
+    document.getElementById('login-switch-hint').textContent = '已有账号？';
+    document.getElementById('login-switch-link').textContent = '去登录';
+  } else {
+    document.getElementById('login-title').innerHTML = '&#x1F44B; 欢迎回来';
+    document.getElementById('login-desc').textContent = '登录你的账号';
+    document.getElementById('login-btn').textContent = '登 录';
+    document.getElementById('login-switch-hint').textContent = '没有账号？';
+    document.getElementById('login-switch-link').textContent = '立即注册';
+  }
+}
+
+function toggleLoginMode() {
+  setLoginMode(loginMode === 'login' ? 'register' : 'login');
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+function showError(msg) {
+  var el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function handleLogin() {
+  var name = document.getElementById('login-input').value.trim();
+  var password = document.getElementById('login-password').value;
+
+  if (name.length < 2 || name.length > 10) {
+    showError('昵称需要 2-10 个字符');
+    return;
+  }
+  if (password.length < 4) {
+    showError('密码至少需要 4 位');
+    return;
+  }
+
+  document.getElementById('login-btn').disabled = true;
+  document.getElementById('login-btn').textContent = '请稍候...';
+
+  try {
+    if (loginMode === 'register') {
+      var exists = await userExists(name);
+      if (exists) {
+        showError('该昵称已被注册，请换一个或直接登录');
+        document.getElementById('login-btn').disabled = false;
+        setLoginMode('register');
+        return;
+      }
+      var ok = await registerUser(name, password);
+      if (!ok) {
+        showError('注册失败，请重试');
+        document.getElementById('login-btn').disabled = false;
+        setLoginMode('register');
+        return;
+      }
+    } else {
+      var exists = await userExists(name);
+      if (!exists) {
+        showError('该账号不存在，请先注册');
+        document.getElementById('login-btn').disabled = false;
+        setLoginMode('login');
+        return;
+      }
+      var ok = await verifyPassword(name, password);
+      if (!ok) {
+        showError('密码错误，请重试');
+        document.getElementById('login-btn').disabled = false;
+        setLoginMode('login');
+        return;
+      }
+    }
+
+    // 登录成功
+    currentUser = { name: name };
+    store = { ...getDefaultStore(), ...(await loadStore()) };
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('profile-name').textContent = name;
+    renderIndex();
+  } catch(e) {
+    console.error('Login error:', e);
+    showError('网络错误，请检查连接后重试');
+  }
+  document.getElementById('login-btn').disabled = false;
+  document.getElementById('login-btn').textContent = loginMode === 'register' ? '注 册' : '登 录';
+}
+
+async function logoutUser() {
+  if (confirm('确定要退出当前账号吗？数据不会丢失。')) {
+    currentUser = null;
+  
+    document.getElementById('profile-name').textContent = '点击登录';
+  
+  }
+}
+// ============ STAGE ACTIONS ============
+function handleStageAction(el) {
+  const id = el.dataset.action;
+  if (id === 'phonetics') navToPage('phonetics');
+  else if (id === 'basicVocab' || id === 'cet4') navToTab('vocabulary');
+  else if (id === 'ielts') navToTab('exam');
+  else navToTab('index');
+}
+
+// ============ UTILS ============
+async function resetAllData() {
+  if (confirm('确定要重置所有学习数据吗？此操作不可恢复。')) {
+  
+    await persist();
+    renderIndex();
+    navToTab('index');
+    alert('数据已重置');
+  }
+}
+
+function fixStageActions() {
+  // Re-bind after render by using onclick in template with direct function names
+}
+
+
+// ============ 页面初始化 ============
+async function initApp() {
+  var user = getCurrentUser();
+  if (user) {
+    var data = await loadStore();
+    store = Object.assign(getDefaultStore(), data);
+    document.getElementById('profile-name').textContent = user; updateAvatarDisplay();
+    document.getElementById('login-overlay').style.display = 'none';
+    renderIndex();
+  } else {
+    store = getDefaultStore();
+    if (!store.avatar) store.avatar = '\u{1F996}';
+    showLogin();
+  }
+}
+
+// initApp() called after DOM ready
+
+// Init
+
+// Handle navigation for word list callback
+document.addEventListener('click', function(e) {
+  // Check for back button in word-list page
+  if (e.target.closest('#page-word-list .back-btn')) {
+    navToTab('vocabulary');
+  }
+  if (e.target.closest('#page-word-study .back-btn')) {
+    if (store._reviewMode) navToTab('vocabulary');
+    else { currentPage = 'word-list'; document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById('page-word-list').classList.add('active'); renderWordList(); window.scrollTo(0,0); }
+  }
+  if (e.target.closest('#page-wordbook .back-btn')) {
+    navToTab('profile');
+  }
+  if (e.target.closest('#page-growth-map .back-btn')) {
+    navToTab('profile');
+  }
+  if (e.target.closest('#page-daily-plan .back-btn')) {
+    navToTab('index');
+  }
+  if (e.target.closest('#page-phonetics .back-btn')) {
+    navToTab('index');
+  }
+  if (e.target.closest('#page-phonetics-detail .back-btn')) {
+    navToPage('phonetics'); renderPhonetics();
+  }
+  if (e.target.closest('#page-phonetics-practice .back-btn')) {
+    navToPage('phonetics'); renderPhonetics();
+  }
+  if (e.target.closest('#page-mock-test .back-btn')) {
+    if (testTimer) clearInterval(testTimer);
+    navToTab('exam');
+  }
+  if (e.target.closest('#page-test-result .back-btn')) {
+    navToTab('exam');
+  }
+});
+document.addEventListener('DOMContentLoaded', function() { console.log('>>> DOM ready, calling initApp'); initApp(); document.addEventListener('keydown', function(e) { if (e.key === 'Enter' && document.getElementById('login-overlay').style.display === 'flex') { handleLogin(); } }); });
+console.log('>>> ALL JS LOADED OK');
+</script>
+
+
+<!-- ============ 头像选择弹窗 ============ -->
+<div class="login-overlay" id="avatar-picker" style="display:none">
+  <div class="login-card">
+    <h2>选择你的恐龙头像</h2>
+    <div class="avatar-grid" id="avatar-grid"></div>
+    <button class="btn-secondary" onclick="document.getElementById('avatar-picker').style.display='none'" style="margin-top:16px;width:100%">关闭</button>
+  </div>
+</div>
+
+<!-- ============ 登录/注册弹窗 ============ --><!-- ============ 登录/注册弹窗 ============ -->
+<div class="login-overlay" id="login-overlay" style="display:none">
+  <div class="login-card">
+    <h2 id="login-title">?? 欢迎来到学英语</h2>
+    <p id="login-desc">登录你的账号</p>
+    <input type="text" id="login-input" placeholder="昵称（2-10个字）" maxlength="10" autocomplete="off">
+    <input type="password" id="login-password" placeholder="密码（至少4位）" maxlength="20" autocomplete="off" style="margin-top:10px">
+    <div class="login-error" id="login-error"></div>
+    <button class="btn-primary" id="login-btn" onclick="handleLogin()">登 录</button>
+    <div class="login-hint" style="margin-top:14px">
+      <span id="login-switch-hint">没有账号？</span>
+      <a href="javascript:void(0)" id="login-switch-link" onclick="toggleLoginMode()" style="color:#4A90D9;cursor:pointer">立即注册</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+
