@@ -751,7 +751,7 @@ button { cursor: pointer; font-family: inherit; }
   <div class="back-btn" onclick="navToTab('vocabulary')">返回词库</div>
   <div class="header"><div class="greeting">&#x1F4DA; 单词学习</div></div>
   <div id="word-study-card" class="word-card">
-    <div class="word-text" id="ws-word">abandon</div>
+    <div class="word-text" id="ws-word">abandon</div> <span onclick="speakWord()" style="cursor:pointer;font-size:28px;vertical-align:middle">&#x1F50A;</span>
     <div class="word-phonetic" id="ws-phonetic">/əbændən/</div>
     <div class="word-meaning" id="ws-meaning">v. 放弃；抛弃</div>
     <div style="margin-top:8px" class="word-example" id="ws-example"></div>
@@ -1272,7 +1272,7 @@ function renderWordList(listId) {
   }
   // Word list
   html += words.map(function(w,i) {
-    return '<div class="word-list-item" onclick="openWordStudy('+i+',wordStudyList['+i+'].en,wordStudyList['+i+'].phon,wordStudyList['+i+'].cn)"><div class="word-en">'+w.en+'</div><div class="word-phon">'+w.phon+'</div><div class="word-cn">'+w.cn+'</div></div>';
+    return '<div class="word-list-item" onclick="openWordStudy('+i+',wordStudyList['+i+'].en,wordStudyList['+i+'].phon,wordStudyList['+i+'].cn)"><div class="word-en">'+w.en+' <span onclick="event.stopPropagation();speakWordItem(this.parentElement.textContent.split(" ")[0])" style="cursor:pointer;font-size:20px">&#x1F50A;</span></div><div class="word-phon">'+w.phon+'</div><div class="word-cn">'+w.cn+'</div></div>';
   }).join('');
   document.getElementById('word-list-items').innerHTML = html;
 }
@@ -2031,6 +2031,7 @@ function toggleMastered() {
   else { btn.innerHTML = '&#x2B55; 标记已掌握'; btn.style.background = ''; }
 }
 function speakWord() { var el = document.getElementById('ws-word'); if (el && el.textContent) { var u = new SpeechSynthesisUtterance(el.textContent); u.lang = 'en-US'; u.rate = 0.8; window.speechSynthesis.speak(u); } }
+function speakWordItem(word) { if (!word) return; var u = new SpeechSynthesisUtterance(word); u.lang = 'en-US'; u.rate = 0.8; window.speechSynthesis.speak(u); }
 function startReview() {
   if (!store.wordbook || store.wordbook.length === 0) { alert('暂无待复习单词'); return; }
   navToTab('vocabulary');
